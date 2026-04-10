@@ -4,11 +4,21 @@ This is not just an update log—it's an epic tale of how this system evolved **
 
 ---
 
+## [v24.1.1] - UX Polish
+
+### Added
+- **Visual Bound Cues**: Added a permanent UX hint underneath the deck list explaining the localized "Daily New Card Limit" per deck. Also refined the global limit's label to eliminate confusion between global total quotas and deck-specific injection limits.
+
+### Fixed
+- **Zero-Value Protection**: Fixed a logical flaw where users setting a deck's "New Card Limit" to `0` would falsely trigger the fallback parser value of `5`, fully restoring the freedom to choose "review-only (0 new cards)" mode for chosen decks.
+
+---
+
 ## [v24.1.0] - Ultimate Defense Hotfix
 
 ### Fixed
 - **Rollback Phantom Voice Vulnerability**: Fixed an issue where the `rateCard` function failed to intercept the precalculated TTS audio placed in the queue when a database write failure triggered a rollback. Added `stopGhostVoice()` inside the Catch block to implement true silent protection.
-- **Prompt Data Destruction Vulnerability**: Fixed the over-restrictive double-quote rule inside the AI prompt. Changed to "Mandatory Outer Wrapping, Absolute Internal Ban" to prevent an overly compliant AI from stripping the outer double-quotes necessary for wrapping multi-line CSV cells, which previously caused the State Machine to crash and discard 100% of generated cards.
+- **Prompt Data Destruction Vulnerability**: Fixed the over-restrictive double-quote rule inside the `english-cards` AI prompt. Changed to "Mandatory Outer Wrapping, Absolute Internal Ban" to prevent an overly compliant AI from stripping the outer double-quotes necessary for wrapping multi-line CSV cells, which previously caused the State Machine to crash and discard 100% of generated cards.
 
 ---
 

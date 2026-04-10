@@ -22,17 +22,17 @@ WordForge is a **fully local, offline Spaced Repetition System (SRS)** built to 
 
 ### 1. Preparing Flashcard Data (Via AI Generation)
 To guarantee system stability, WordForge employs an aggressive "Validation Layer". Only perfectly formatted cards can enter your database.
-1. Copy the instructions inside `CSV-for-wordforge_en.txt` and paste them into your favorite AI (ChatGPT, Claude, etc.).
+1. Copy the instructions inside `prompts/english-cards_en.txt` and paste them into your favorite AI (ChatGPT, Claude, etc.).
 2. The AI will strictly output standard CSVs with double-quote protection mapping directly to our frontend requirements (Part of Speech, Definition, Example, and Collocations).
 
 ### 2. Launching & Importing
-1. Open **`vocabulary_srs.html`** in any modern web browser.
+1. Open **`wordforge.html`** in any modern web browser.
 2. In the "Learning Center" dashboard, drag and drop your AI-generated `.csv` file into the upload zone.
 3. The system parses the file. Any corrupted rows are automatically isolated and discarded, and the valid words become a newly created "Deck".
 
 ### 3. Personalizing Your Study Rhythm
 - **Global Daily Limits**: Click the ⚙️ gear icon in the top right to set your global threshold (the absolute maximum "energy" or words you can review in a single day across all decks).
-- **Deck-Specific Flow**: Check the checkboxes next to the decks you want to review today. Click the ✏️ pencil icon next to a deck to throttle its daily "New Cards" injection rate.
+- **Deck-Specific Flow**: Check the checkboxes next to the decks you want to review today. Click the ✏️ pencil icon next to a deck to throttle its daily "New Cards" injection limit (you can even set it to 0 for a review-only session).
 
 ### 4. Immersive Practice (Keyboard Shortcuts)
 Once you've selected your decks, click "Start Practice" (開始練習) to enter distraction-free mode.
@@ -54,9 +54,9 @@ Once you've selected your decks, click "Start Practice" (開始練習) to enter 
 ## 🛠️ Architecture & Development Files
 
 The system bundles all logic closely together across a minimal footprint:
-- `vocabulary_srs.html`: The core standalone application (HTML/CSS/Vanilla JS, internal CSV state machine, and IndexedDB controller).
-- `CSV-for-wordforge_en.txt`: The definitive prompt constraint guide ensuring AI models output 100% parseable standard CSVs.
-- `update_en.md`: The Architect's Ledger—an epic changelog documenting the 24-version history of surviving hardware physics and software chaos.
+- `wordforge.html`: The core standalone application (HTML/CSS/Vanilla JS, internal CSV state machine, and IndexedDB controller).
+- `prompts/english-cards_en.txt`: The definitive prompt constraint guide ensuring AI models output 100% parseable standard CSVs.
+- `CHANGELOG.en.md`: The Architect's Ledger—an epic changelog documenting the 24-version history of surviving hardware physics and software chaos.
 
 ---
 *Created with extreme engineering rigor. Say goodbye to forgotten words.*
