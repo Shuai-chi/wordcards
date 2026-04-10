@@ -27,7 +27,7 @@ To guarantee system stability, WordForge employs an aggressive "Validation Layer
 
 ### 2. Launching & Importing
 1. Open **`wordforge.html`** in any modern web browser.
-2. In the "Learning Center" dashboard, drag and drop your AI-generated `.csv` file into the upload zone.
+2. In the "Learning Center" dashboard, drag and drop your AI-generated `.csv` file into the upload zone (supports selecting or dropping multiple files at once for bulk import).
 3. The system parses the file. Any corrupted rows are automatically isolated and discarded, and the valid words become a newly created "Deck".
 
 ### 3. Personalizing Your Study Rhythm

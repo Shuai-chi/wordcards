@@ -499,7 +499,7 @@
 
     <!-- Upload zone -->
     <div class="upload-zone" id="upload-zone">
-      <input type="file" id="csv-input" accept=".csv">
+      <input type="file" id="csv-input" accept=".csv" multiple>
       <div class="upload-icon"><i data-lucide="upload-cloud" style="width:36px;height:36px"></i></div>
       <div class="upload-title">匯入 CSV 單字卡</div>
       <div class="upload-sub">點擊或拖曳 CSV 檔案至此，第一欄為單字，第二欄為內容</div>
@@ -1583,15 +1583,28 @@ const csvInput   = document.getElementById('csv-input');
 uploadZone?.addEventListener('click', () => csvInput?.click());
 uploadZone?.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
 uploadZone?.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-uploadZone?.addEventListener('drop', (e) => {
+uploadZone?.addEventListener('drop', async (e) => {
   e.preventDefault();
   uploadZone.classList.remove('drag-over');
-  const file = e.dataTransfer?.files[0];
-  if (file) importCSV(file);
+  const files = e.dataTransfer?.files;
+  if (!files) return;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file && file.name.toLowerCase().endsWith('.csv')) {
+      await importCSV(file);
+    }
+  }
 });
-csvInput?.addEventListener('change', (e) => {
-  const file = e.target.files?.[0];
-  if (file) { importCSV(file); csvInput.value = ''; }
+csvInput?.addEventListener('change', async (e) => {
+  const files = e.target.files;
+  if (!files) return;
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (file) {
+      await importCSV(file);
+    }
+  }
+  csvInput.value = '';
 });
 
 // Modal overlays close on outside click

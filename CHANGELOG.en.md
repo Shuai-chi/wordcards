@@ -4,6 +4,13 @@ This is not just an update log—it's an epic tale of how this system evolved **
 
 ---
 
+## [v24.1.2] - Bulk Import
+
+### Added
+- **Multi-File Bulk Upload**: Added `multiple` support to the CSV upload zone. Refactored the drag-and-drop and the file selection event listeners by introducing sequential asynchronous loops. The system now allows the drag or selection of multiple CSV files simultaneously, seamlessly importing multiple decks at once and exponentially increasing the efficiency of building your vocabulary library.
+
+---
+
 ## [v24.1.1] - UX Polish
 
 ### Added
