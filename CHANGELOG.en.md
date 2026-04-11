@@ -4,6 +4,21 @@ This is not just an update log—it's an epic tale of how this system evolved **
 
 ---
 
+## [v25.0.0] - Era VII: The React Renaissance & RWD Expansion
+
+### Added
+- **Full React Modularization**: Completely abandoned the colossal single-file HTML structure. Introduced a modern React + Vite + TypeScript architecture, decoupling all UI into highly maintainable `Dashboard`, `LearningView`, and respective Modals.
+- **Tailwind v3 Visual System**: Replaced the primitive CSS variable system with Tailwind CSS v3, achieving the ultimate responsive design (RWD) for mobile-first fluid adaptability.
+- **Serverless Deployment Ready**: Added `deploy.yml` to realize one-click CI/CD automated builds and cloud publishing via GitHub Actions to GitHub Pages.
+- **Local State Persistence**: Introduced `localStorage` to memorize the user's "checked deck" interactions, ensuring deck selections do not mysteriously vanish when returning to the dashboard after a session.
+
+### Changed
+- **Algorithm Quota Refactoring**: Completely rewrote the judging logic for "Daily New Card Quotas". The system now strictly tracks `introducedDate`, permanently closing the loophole where exiting mid-session and returning caused an endless distribution of new cards.
+- **Unfinished Card Enforcement**: Even if you leave mid-session, any card deemed "Urgent/Learning" today will implicitly bypass daily limits and return in your next session. You can no longer escape difficult vocabulary hurdles.
+- **Free-Will Imports**: Completely decoupled the rigorous old CSV formatting verifications (e.g., forcing phonetic prefixes). As long as PapaParse can cleanly severe a front and back string pair, the system unconditionally imports the flashcard, establishing 100% backward compatibility for all legacy word libraries.
+
+---
+
 ## [v24.1.2] - Bulk Import
 
 ### Added

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --primary: #3b82f6;
+    --secondary: #e2e8f0;
+    --accent: #0ea5e9;
+    --muted: #64748b;
+    --border: #cbd5e1;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #020617;
+      --foreground: #f8fafc;
+      --primary: #3b82f6;
+      --secondary: #1e293b;
+      --accent: #38bdf8;
+      --muted: #94a3b8;
+      --border: #334155;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --card: #0f172a;
+      --card-foreground: #f8fafc;
+    }
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-200;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2;
+  }
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-blue-600 shadow-sm;
+  }
+  .btn-secondary {
+    @apply bg-secondary text-foreground hover:bg-slate-300 dark:hover:bg-slate-700;
+  }
+  .btn-outline {
+    @apply border border-border bg-transparent hover:bg-secondary;
+  }
+  .btn-danger {
+    @apply bg-danger text-white hover:bg-red-600;
+  }
+  .card-container {
+    @apply bg-card text-card-foreground rounded-xl shadow-sm border border-border;
+  }
+  .input {
+    @apply flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors;
+  }
+}

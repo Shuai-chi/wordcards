@@ -4,6 +4,21 @@
 
 ---
 
+## [v25.0.0] - 第七紀元：React 架構現代化與 RWD 擴張 (The React Renaissance)
+
+### Added (新增)
+- **全面 React 模組化**：徹底拋棄千行單極 HTML，導入 React + Vite + TypeScript 現代化架構，所有 UI 拆分為高維護性的 `Dashboard`, `LearningView` 與各類 Modal。
+- **Tailwind v3 視覺系統**：全面替換原始 CSS 變數系統，採用 Tailwind CSS v3 實作最極致的 RWD 手機版自適應能力。
+- **無伺服器部署就緒**：新增 `deploy.yml`，實現 GitHub Actions 與 GitHub Pages 一鍵 CI/CD 自動建置與雲端發佈。
+- **本地狀態持久化**：新增 `localStorage` 對使用者「勾選套牌」的操作記憶，確保練習後退回學習中心，上勾選的套牌不會憑空消失。
+
+### Changed (更動)
+- **演算法配額重構**：全面重寫「每日新卡名額」的判定邏輯。現在系統嚴格偵測 `introducedDate`，徹底防堵了「中途跳出再回來導致無盡新卡派發」的設計盲點。
+- **爛尾卡強制作業**：即使中途離開，當日學習未畢業的（緊急/Learning）卡片，絕對會再次無條件加回下一輪練習清單中，且不消耗任何新卡配額，確保了不逃避困難單字的核心大腦挑戰。
+- **自由意志上傳**：完全解除對舊 CSV 卡片版面（如強迫包含「音標：」）的嚴厲驗證，只要 PapaParse 能切分出正反面即無條件放行，完成了對舊版字庫 100% 的向後兼容 (Backward Compatibility)。
+
+---
+
 ## [v24.1.2] - 批量匯入 (Bulk Import)
 
 ### Added (新增)
