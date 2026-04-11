@@ -29,4 +29,4 @@ WordForge 支援 **GitHub Pages** 免費無伺服器託管！
 未來只要用手機瀏覽器打開 `https://[你的帳號].github.io/wordcards/`，點選「加入主畫面」，它就會以 PWA 的形態變成您專屬的背單字神器！
 
 ## 📜 更新歷程
-請查閱 [CHANGELOG.md](./CHANGELOG.md) 以瞭解這套系統是如何從一個簡單的邏輯腳本，被極限測試演化至現今毫無破綻的穩健狀態。
+請查閱 [CHANGELOG.md](./CHANGELOG.md) 以瞭解這套系統是如何從一個簡單的邏輯腳本，被極限測試演化至現今毫無破綻的穩健狀態。 
