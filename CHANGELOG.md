@@ -1,122 +1,67 @@
-# WordForge SRS 系統升級歷程 (Changelog)
+# Changelog
 
-這不僅是一份更新紀錄，更是這套系統如何**從一個脆弱的腳本，被極度嚴苛的極限施壓逼成一座無懈可擊的工業級堡壘**的演化史。本紀錄遵循標準的 Changelog 模式，記錄系統架構與防禦網的每一次淬鍊。
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
----
+## [v25.1.0] - 2026-04-14
 
-## [v25.0.0] - 第七紀元：React 架構現代化與 RWD 擴張 (The React Renaissance)
+### Added
+- **Error Diagnostics**: Implemented row-level diagnostic messaging in `csv.ts` that specifies exact line numbers and constraints (length, spacing) when parsing fails.
+- **Storage Monitoring**: Enhanced IndexedDB error handling in `App.tsx` and `db.ts` to capture and unpack stringified DOM `Event` objects to expose core reasons (e.g., storage quota exceeded, Private Browsing blocks).
 
-### Added (新增)
-- **全面 React 模組化**：徹底拋棄千行單極 HTML，導入 React + Vite + TypeScript 現代化架構，所有 UI 拆分為高維護性的 `Dashboard`, `LearningView` 與各類 Modal。
-- **Tailwind v3 視覺系統**：全面替換原始 CSS 變數系統，採用 Tailwind CSS v3 實作最極致的 RWD 手機版自適應能力。
-- **無伺服器部署就緒**：新增 `deploy.yml`，實現 GitHub Actions 與 GitHub Pages 一鍵 CI/CD 自動建置與雲端發佈。
-- **本地狀態持久化**：新增 `localStorage` 對使用者「勾選套牌」的操作記憶，確保練習後退回學習中心，上勾選的套牌不會憑空消失。
-
-### Changed (更動)
-- **演算法配額重構**：全面重寫「每日新卡名額」的判定邏輯。現在系統嚴格偵測 `introducedDate`，徹底防堵了「中途跳出再回來導致無盡新卡派發」的設計盲點。
-- **爛尾卡強制作業**：即使中途離開，當日學習未畢業的（緊急/Learning）卡片，絕對會再次無條件加回下一輪練習清單中，且不消耗任何新卡配額，確保了不逃避困難單字的核心大腦挑戰。
-- **自由意志上傳**：完全解除對舊 CSV 卡片版面（如強迫包含「音標：」）的嚴厲驗證，只要 PapaParse 能切分出正反面即無條件放行，完成了對舊版字庫 100% 的向後兼容 (Backward Compatibility)。
+### Fixed
+- **UI Interaction**: Removed `e.stopPropagation()` on `LearningView` text elements that previously blocked card-flip toggle events.
+- **Test Stability**: Resolved flaky Playwright end-to-end tests in `wordforge.spec.ts` by replacing implicit timeouts with explicit `waitFor` UI state resolution.
 
 ---
 
-## [v24.1.2] - 批量匯入 (Bulk Import)
+## [v25.0.0] - 2026-04-12
 
-### Added (新增)
-- **多檔案批量上傳**：在 CSV 上傳區新增多檔案 (`multiple`) 支援。重構了拖曳與點擊的事件監聽器，透過循序非同步迴圈，現在系統允許一次性拖曳或選取多個 CSV 檔案，一次性完整匯入多個套牌，大幅提升初期字庫建置的效率。
+### Added
+- **Framework Migration**: Refactored the core application from vanilla JavaScript to a React 19 + TypeScript + Vite SPA architecture.
+- **Routing & State Management**: Abstracted UI into independent components (`Dashboard`, `LearningView`, `Modals`) controlled by a top-level state machine.
+- **Styling Architecture**: Replaced custom CSS variables with Tailwind CSS v3 for programmatic RWD styling.
+- **Build Pipeline**: Configured `.github/workflows/deploy.yml` for automated CI/CD deployments to GitHub Pages.
 
----
-
-## [v24.1.1] - 體驗優化 (UX Polish)
-
-### Added (新增)
-- **視覺化防護界線**：在套牌列表下方新增常駐的「套牌獨立新卡上限」UX 提示，並優化了全域上限的標籤名稱，徹底解決新手在設定全域與單一獨立套牌抽取配額時的混淆現象。
-
-### Fixed (修復)
-- **極值防禦**：修復了使用者在修改「單一套牌每日新卡上限」時，若輸入 0 或是無效的值，會被 parseInt 吃掉並錯誤觸發預設值 5 的邏輯漏洞，確實保障了設定為 0 (只複習不抽新卡) 的自由度。
+### Changed
+- **Storage Layer**: Migrated from `localStorage` to `IndexedDB` to support unconstrained storage size limits and scalable deck management.
+- **Algorithm State Initialization**: Updated the SM-2 initialization routine to track `introducedDate` logically, preventing state resets on early session exits.
+- **CSV Parser Constraints**: Relaxed legacy custom header validation rules, standardizing to PapaParse default configurations for raw front/back text mapping.
 
 ---
 
-## [v24.1.0] - 終極防禦熱修復 (Hotfix)
+## [v24.1.2] - 2026-04-10
 
-### Fixed (修復)
-- **Rollback 幽靈語音漏洞**：修復 `rateCard` 函式在 IndexedDB 寫入失敗觸發回滾 (Rollback) 時，未能攔截已被送入語音佇列的「預判語音」的問題。已於 Catch 區塊加入 `stopGhostVoice()` 實作真正的靜默防護。
-- **Prompt 語料破壞漏洞**：修復 `english-cards` 提示詞中對雙引號的過度限制。修改規則為「強制外層包覆，內容絕對禁用」，以防止過度服從的 AI 移除包裹多行 CSV 所需的外層雙引號，進而導致狀態機解析崩潰、卡片全數遭拋棄的災難。
-
----
-
-## [v24.0.0] - 第六紀元：全域真理的誕生 (The Final Shift)
-
-### Added (新增)
-- **全域消耗指標 (Single Source of Truth)**：重新設計 DB Schema，在 `dailyReport` 中新增 `uniqueCards`（今日不重複觸碰卡片數），作為全系統統一的額度基準。
-
-### Fixed (修復)
-- **非同步 I/O 海嘯**：廢除在前端迴圈中盤點消耗額度的暴力解法，透過全局 `uniqueCards` 徹底解決全選多個套牌並修改預算時，引發海量資料庫全表掃描導致低階手機卡死閃退的問題。
-- **平行預算的時空裂縫**：解決了使用者切換套牌時會繞過全域預算檢查，導致單日無意間被塞入超過體力負荷數量的單字卡問題。
+### Added
+- **File System API**: Expanded CSV import capabilities to accept multiple `File` inputs iteratively via asynchronous batch processing.
 
 ---
 
-## [v15.0 - v22.1] - 第五紀元：模組收斂與原子化
+## [v24.1.1] - 2026-04-10
 
-### Added (新增)
-- **純函式狀態機**：導入 `appState.currentView` 工作區，徹底斬斷業務邏輯與 DOM (`document.getElementById`) 的高危險耦合。
-- **例外單一出口**：統整 `tx._manualError` 為所有本地端資料庫交易的單一例外捕捉出口。
+### Added
+- **UX State Indicators**: Embedded configuration limit labels (`Global` vs `Deck`) natively inside the Dashboard component tree.
 
-### Changed (更動)
-- **歷史性資料庫遷徙**：將 `dailyReport` 徹底移出 LocalStorage，併入 IndexedDB 的 `reports` 之中。
-- **硬體音軌喚醒機制**：移除 `volume = 0` 的零音量陷阱，改以於解鎖階段播放空字串喚醒 iOS 硬體音軌。
-
-### Fixed (修復)
-- **LocalStorage 競態極限**：解決了即使有鎖定機制依然發生的「時空撕裂」問題，將戰報與單字卡更新綁定在同一個 transaction 中，實現 **100% 絕對原子寫入**。
-- **雙重 Reject 反模式**：修復 IndexedDB 交易中 `onerror` 與 `onabort` 互相搶奪 Reject 權限引發 V8 引擎警告的架構瑕疵。
+### Fixed
+- **State Mutation Leak**: Stopped empty integer strings from coercing logic variables to null properties when customizing card rate limits.
 
 ---
 
-## [v10.0 - v14.0] - 第四紀元：極限物理盲測
+## [v24.1.0] - 2026-04-10
 
-### Added (新增)
-- **Fisher-Yates 密碼學洗牌**：自研洗牌機制取代 `Math.random() - 0.5` 的原生弱隨機排序，保證絕對亂數，消除單字群聚造成的上下文依賴記憶。
-
-### Fixed (修復)
-- **亡靈迴音**：實裝 `beforeunload`，強制於關閉網頁、切換 APP 時斬斷 iOS 底層持續大叫的語音線程。
-- **跨頁籤死鎖**：綁定 `db.onversionchange` 自動切斷連線，解除資料庫版本升級時舊頁籤卡死全域的問題。
-- **NaN 毒性擴散**：導入 `(Number(val) || 0) + 1` 強制型別淨化，修復因記憶體暫存損毀導致的點擊數永久 `NaN` 錯誤。
+### Fixed
+- **Audio Thread Leak**: Registered `stopGhostVoice()` execution within transaction `catch` blocks to intercept un-awaited DOM Audio components.
+- **AI Prompt Formatting Rules**: Fixed prompt definitions instructing AI to escape double-quotation constraints that corrupted state machine evaluations.
 
 ---
 
-## [v7.0 - v9.0] - 第三紀元：環境對抗與持久化
+## [v24.0.0] - Prior Architectural Shifts
 
-### Added (新增)
-- **樂觀 UI 更新 (Optimistic UI)**：點擊瞬間先渲染畫面並發聲，將緩慢的資料庫寫入退居背景，達成零毫秒延遲的操作流暢度。
-- **即時同步鎖**：實作跨頁籤的 `visibilitychange` 事件監聽，即時更新多頁籤狀態。
+### Changed
+- **Aggregate Logging Structure**: Shifted metric accumulation logic to single source of truth (`uniqueCards` per daily report block) to optimize asynchronous iteration counts.
 
-### Fixed (修復)
-- **孤兒卡片外洩**：實作聯集 `transaction(['decks','cards'])` 的原子化操作同生共死，解決刪除套牌中斷時產生的幽靈資料庫垃圾。
-- **iOS 靜音詛咒**：繞過了 iPhone OS 判定 `await` 資料庫後的語音為「非使用者直接點擊」而強行剝奪發音權限的底層物理限制。
-
----
-
-## [v6.0 - v6.5] - 第二紀元：演算法與防禦網
-
-### Added (新增)
-- **防毒驗證層 (Validation Layer)**：建立絕對封閉的資料庫護城河，所有不合規定的 CSV 髒資料在匯入時便直接拋棄。
-- **時區校準**：導入 `04:00 AM` 邏輯換日線（自本地時間偏移 4 小時校準）。
-
-### Fixed (修復)
-- **毒藥卡片注入**：解決無防備狀態下匯入不良格式資料造成整個核心資料庫癱瘓的重大漏洞。
-- **停滯黑洞**：實作 `Math.max(interval + 1)`，摧毀了連續點擊 Hard 導致 `Math.round(2 * 1.2) = 2` 的間隔天數卡死迴圈。
-
----
-
-## [v1.0 - v5.0] - 第一紀元：混沌與成型期
-
-### Added (新增)
-- **自研 CSV 狀態機**：捨棄原生的字串切割，手寫具備「狀態機 (State Machine)」的雙引號解析邏輯，確立前後端責任絕對切割。
-
-### Fixed (修復)
-- **BOM 污染**：導入 `charCodeAt(0) === 0xFEFF` 強制剝除 Excel 產生的隱形字元，解決首張卡片永遠無法正確解析的問題。
-- **RFC 4180 崩解**：防禦 AI 在欄位中自作主張的換行與逗號，修復直接使用 `split(',')` 帶來的卡片切碎災難。
-
----
-
-> **The Architect's Note:**
-> 從 v1.0 到目前的版本，這套系統褪去了所有依賴運氣與第三方套件的稚氣。這 24 個版本的迭代與紀錄，是一場硬核軟體工程的實戰。沒有前期的極度苛求與極限破壞測試，這裡提及的大部分災難，都會成為未來正式環境中讓使用者默默流失的無解懸案。
+### Fixed
+- **Data Races**: Unified IndexedDB `transaction(['decks','cards'])` structures to execute atomic relational commits, addressing previous entity-relationship orphans.
+- **Memory Addressing**: Implemented strict numeric typecasting implementations (`Number(val) || 0 + 1`) natively mitigating cascading `NaN` exceptions during object serialization.
+- **iOS DOM Event Rules**: Migrated Audio initialization functions to fire implicitly alongside User Event Listeners (`touchstart`, `click`), bypassing explicit strict Audio blocking protocol.
+- **Index Corruptions**: Inserted Byte Order Mark (`BOM 0xFEFF`) filters in the parsing layer neutralizing Microsoft Excel invisible string encodings. 
