@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v25.2.0] - 2026-04-14
+
+### Added
+- **Deck Progress Tracking**: Added per-deck "introduced / total" card counts with a gradient-animated progress bar. Bar color transitions automatically (purple → blue → green) based on completion percentage.
+
+---
+
 ## [v25.1.0] - 2026-04-14
 
 ### Added

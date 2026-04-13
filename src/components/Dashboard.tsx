@@ -22,6 +22,7 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
     return new Set<string>();
   });
   const [budgetInfo, setBudgetInfo] = useState({ expected: 0, touchedToday: 0 });
+  const [deckProgress, setDeckProgress] = useState<Record<string, { introduced: number; total: number }>>({}); 
 
   useEffect(() => {
     async function calcBudget() {
@@ -82,6 +83,23 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
 
     calcBudget();
   }, [decks, selectedDeckIds, globalLimit]);
+
+  useEffect(() => {
+    async function calcProgress() {
+      const progress: Record<string, { introduced: number; total: number }> = {};
+      for (const deck of decks) {
+        try {
+          const cards = await DB.getCardsByDeck(deck.id);
+          const introduced = cards.filter(c => c.state !== 'new').length;
+          progress[deck.id] = { introduced, total: cards.length };
+        } catch {
+          progress[deck.id] = { introduced: 0, total: deck.cardCount ?? 0 };
+        }
+      }
+      setDeckProgress(progress);
+    }
+    if (decks.length > 0) calcProgress();
+  }, [decks]);
 
   const handleStart = async () => {
     if (selectedDeckIds.size === 0) return;
@@ -218,16 +236,52 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
                 localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(newSet)));
               }}
             >
-              <div className="flex items-center gap-3">
-                 <div className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center ${selectedDeckIds.has(d.id) ? 'bg-primary border-primary' : 'border-muted'}`}>
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                 <div className={`w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center mt-0.5 ${selectedDeckIds.has(d.id) ? 'bg-primary border-primary' : 'border-muted'}`}>
                     {selectedDeckIds.has(d.id) && <CheckCircle className="w-4 h-4 text-white" />}
                  </div>
-                 <div>
-                   <h3 className="font-semibold text-base">{d.name}</h3>
-                   <div className="text-xs text-muted font-medium mt-0.5">{d.cardCount ?? '?'} 張卡片 · 每日新卡上限 {d.newCardLimit ?? 20}</div>
+                 <div className="flex-1 min-w-0">
+                   <h3 className="font-semibold text-base truncate">{d.name}</h3>
+                   <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted font-medium mt-1">
+                     <span>每日新卡上限：{d.newCardLimit ?? 20}</span>
+                     <span className="text-foreground font-semibold">
+                       {(() => {
+                         const p = deckProgress[d.id];
+                         const intro = p?.introduced ?? 0;
+                         const total = p?.total ?? (d.cardCount ?? 0);
+                         return `${intro} / ${total}`;
+                       })()}
+                       <span className="text-muted font-normal ml-1">(已抽卡/總卡片)</span>
+                     </span>
+                   </div>
+                   {/* Progress Bar */}
+                   {(() => {
+                     const p = deckProgress[d.id];
+                     const intro = p?.introduced ?? 0;
+                     const total = p?.total ?? (d.cardCount ?? 0);
+                     const pct = total > 0 ? Math.round((intro / total) * 100) : 0;
+                     return (
+                       <div className="mt-2 w-full">
+                         <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                           <div
+                             className="h-full rounded-full transition-all duration-700 ease-out"
+                             style={{
+                               width: `${pct}%`,
+                               background: pct === 100
+                                 ? 'linear-gradient(90deg, #10b981, #34d399)'
+                                 : pct >= 50
+                                   ? 'linear-gradient(90deg, #3b82f6, #60a5fa)'
+                                   : 'linear-gradient(90deg, #6366f1, #818cf8)',
+                             }}
+                           />
+                         </div>
+                         <div className="text-[10px] text-muted mt-0.5 text-right">{pct}%</div>
+                       </div>
+                     );
+                   })()}
                  </div>
               </div>
-              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-1 flex-shrink-0 ml-2" onClick={(e) => e.stopPropagation()}>
                 <button className="p-2 text-muted hover:text-accent rounded-full hover:bg-secondary transition-colors" onClick={() => onEditDeck(d)}>
                   <Edit2 className="w-4 h-4" />
                 </button>
