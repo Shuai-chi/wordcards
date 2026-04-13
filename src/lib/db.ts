@@ -29,8 +29,8 @@ export const DB = {
     if (dbReady) return dbReady;
     dbReady = new Promise((resolve, reject) => {
       const request = indexedDB.open('SRS_DB', 1);
-      request.onupgradeneeded = (e: any) => {
-        const _db = e.target.result;
+      request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
+        const _db = (e.target as IDBOpenDBRequest).result;
         if (!_db.objectStoreNames.contains('decks')) {
           _db.createObjectStore('decks', { keyPath: 'id' });
         }
@@ -42,8 +42,8 @@ export const DB = {
           _db.createObjectStore('reports', { keyPath: 'dateStr' });
         }
       };
-      request.onsuccess = (e: any) => {
-        db = e.target.result;
+      request.onsuccess = () => {
+        db = request.result;
         resolve();
       };
       request.onerror = (e) => reject(e);
@@ -79,8 +79,8 @@ export const DB = {
       const cardStore = tx.objectStore('cards');
       const index = cardStore.index('deckId');
       const req = index.openCursor(IDBKeyRange.only(deckId));
-      req.onsuccess = (e: any) => {
-        const cursor = e.target.result;
+      req.onsuccess = () => {
+        const cursor = req.result;
         if (cursor) {
           cursor.delete();
           cursor.continue();

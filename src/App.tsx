@@ -81,8 +81,8 @@ function App() {
         await DB.putCards(cards);
         successCount++;
         if (skipped > 0) showToast(`${deckName} 跳過了 ${skipped} 張格式錯誤卡片`);
-      } catch (err: any) {
-        alert(`${file.name} 匯入失敗: ${err.message}`);
+      } catch (err: unknown) {
+        alert(`${file.name} 匯入失敗: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
     

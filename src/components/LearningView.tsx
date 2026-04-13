@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Card } from '../lib/types';
 import { updateSRS } from '../lib/srs';
 import { DB, getTodayStr } from '../lib/db';
@@ -47,7 +47,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     }
   }, [currentCard, showAnswer]);
 
-  const handleRate = async (ratingKey: 'again'|'hard'|'good'|'easy', btnIndex: number) => {
+  const handleRate = useCallback(async (ratingKey: 'again'|'hard'|'good'|'easy', btnIndex: number) => {
     if (!currentCard || !showAnswer || isRatingRef.current) return;
     isRatingRef.current = true;
     
@@ -79,7 +79,11 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     if (newQueue.length === 0) {
       onFinish();
     }
-  };
+  }, [currentCard, showAnswer, queue, seenIds, onFinish, setQueue]);
+
+  // Keep a ref to the latest handleRate to avoid stale closures in keydown listener
+  const handleRateRef = useRef(handleRate);
+  useEffect(() => { handleRateRef.current = handleRate; }, [handleRate]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -92,15 +96,15 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
           setShowAnswer(true);
         }
       } else {
-        if (e.key === '1') handleRate('again', 1);
-        if (e.key === '2') handleRate('hard', 2);
-        if (e.key === '3') handleRate('good', 3);
-        if (e.key === '4') handleRate('easy', 4);
+        if (e.key === '1') handleRateRef.current('again', 1);
+        if (e.key === '2') handleRateRef.current('hard', 2);
+        if (e.key === '3') handleRateRef.current('good', 3);
+        if (e.key === '4') handleRateRef.current('easy', 4);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showAnswer, currentCard, queue]);
+  }, [showAnswer, currentCard]);
 
   const progress = queue.length > 0 ? ((totalInitial - queue.length) / totalInitial) * 100 : 100;
 
@@ -129,9 +133,12 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
         </div>
         
         <div className="flex-1 flex flex-col justify-center items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 flex items-center justify-center relative group tracking-tight" onClick={(e) => { e.stopPropagation(); readText(currentCard.front); }}>
+          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 flex items-center justify-center relative group tracking-tight">
             {currentCard.front}
-            <Volume2 className="w-6 h-6 ml-3 text-muted group-hover:text-primary transition-colors hover:scale-110 cursor-pointer" />
+            <Volume2 
+              className="w-6 h-6 ml-3 text-muted group-hover:text-primary transition-colors hover:scale-110 cursor-pointer" 
+              onClick={(e) => { e.stopPropagation(); readText(currentCard.front); }}
+            />
           </h1>
           
           {showAnswer && (
@@ -153,7 +160,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
 
                 return (
                   <div key={i} className={className}>
-                    {trimmed.replace(/^(意思：|例句：|搭配：)/, '')}
+                    {trimmed.replace(/^(音標：|音标：|意思：|例句：|搭配：)/, '')}
                   </div>
                 );
               })}
