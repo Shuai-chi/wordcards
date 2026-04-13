@@ -45,8 +45,9 @@ function App() {
       
       const r = await DB.getTodayReport();
       setReport(r);
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
+      alert(`載入資料失敗 (資料庫錯誤): ${err instanceof Error ? err.message : String(err)}\n\n請確保您沒有開啟無痕模式，或清除 Safari/Chrome 的網站資料。`);
       showToast('載入資料失敗');
     }
   };
