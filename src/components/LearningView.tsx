@@ -22,6 +22,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
 
   useEffect(() => {
     if (queue.length > 0 && !currentCard) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentCard(queue[0]);
     }
   }, [queue, currentCard]);
@@ -43,6 +44,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
 
   useEffect(() => {
     if (currentCard && !showAnswer) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       readText(currentCard.front);
     }
   }, [currentCard, showAnswer]);
@@ -60,7 +62,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     const updatedCard = updateSRS(currentCard, btnIndex);
     updatedCard.todayRating = ratingKey;
 
-    let newQueue = [...rest];
+    const newQueue = [...rest];
     if (updatedCard.interval === 0) {
       const insertPos = Math.min(newQueue.length, Math.floor(Math.random() * 3) + 1);
       newQueue.splice(insertPos, 0, updatedCard);

@@ -5,7 +5,7 @@ function getTodayStr(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function normalizeReport(report: any, dateStr: string): Report {
+function normalizeReport(report: Partial<Report> | null, dateStr: string): Report {
   if (!report) {
     return { dateStr, uniqueCards: 0, clicks: { again: 0, hard: 0, good: 0, easy: 0 } };
   }
@@ -14,9 +14,9 @@ function normalizeReport(report: any, dateStr: string): Report {
     uniqueCards: report.uniqueCards || 0,
     clicks: {
       again: report.clicks?.again || 0,
-      hard:  report.clicks?.hard  || 0,
-      good:  report.clicks?.good  || 0,
-      easy:  report.clicks?.easy  || 0,
+      hard: report.clicks?.hard || 0,
+      good: report.clicks?.good || 0,
+      easy: report.clicks?.easy || 0,
     }
   };
 }
@@ -47,7 +47,7 @@ export const DB = {
           db = request.result;
           resolve();
         };
-        request.onerror = (e) => reject(request.error || new Error('Database opening error (possibly blocked by private mode or quota)'));
+        request.onerror = () => reject(request.error || new Error('Database opening error (possibly blocked by private mode or quota)'));
       } catch (err) {
         reject(err);
       }
@@ -165,9 +165,9 @@ export const DB = {
         const tx = db!.transaction(['cards', 'reports'], 'readwrite');
         tx.onabort = () => reject(tx.error || new Error('Review transaction aborted'));
         tx.onerror = (e) => { e.preventDefault(); };
-        
+
         tx.objectStore('cards').put(updatedCard);
-        
+
         const reports = tx.objectStore('reports');
         const getReq = reports.get(todayStr);
         let nextReport: Report;

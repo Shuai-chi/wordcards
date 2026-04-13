@@ -53,9 +53,9 @@ function App() {
   };
 
   useEffect(() => {
+     
     loadData();
   }, [view]);
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;

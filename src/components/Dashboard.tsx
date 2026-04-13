@@ -17,7 +17,7 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(() => {
     const saved = localStorage.getItem('srs_selected_decks');
     if (saved) {
-      try { return new Set<string>(JSON.parse(saved)); } catch(e) {}
+      try { return new Set<string>(JSON.parse(saved)); } catch { /* ignore */ }
     }
     return new Set<string>();
   });

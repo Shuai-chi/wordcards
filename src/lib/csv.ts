@@ -70,7 +70,7 @@ export function parseCSV(file: File, deckId: string, groupName: string): Promise
           resolve({ cards: parsedCards, skipped: skippedCount });
         }
       },
-      error: (err: any) => {
+      error: (err: Error) => {
         reject(err);
       }
     });
