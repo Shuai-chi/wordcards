@@ -1,32 +1,47 @@
-# WordForge (Vocabulary SRS) 🧠
+# WordForge SRS
 
-WordForge is a fully localized, privacy-first Spaced Repetition System (SRS) designed for vocabulary mastery, built with the power of the legendary SM-2 algorithm. 
-It boasts an **"Accountless, Serverless, 100% Local Hardware Storage"** extreme privacy experience. You can seamlessly enjoy native-app-like flashcard reviews on any modern browser, including your mobile devices.
+A local-first Spaced Repetition System (SRS) client powered by the SM-2 algorithm, built with a modern React architecture.
 
-## 🌟 Core Features
+## 📌 Technical Specifications
 
-- **Powerful Algorithmic Engine (SM-2)**: The system calculates the exact optimal future review date based on the difficulty and review history of each individual card, effectively flattening your brain's forgetting curve.
-- **Full Local Persistence (IndexedDB)**: Your data is entirely stored within your local browser (supporting hundreds of MBs of storage), immune to network outages and data leaks.
-- **Flexible Default Limits**: Supports intersecting constraints such as "Global Daily Limits" alongside specific deck allocation parsing.
-- **Perfect Interruption Memory**: If you close the app mid-session, any cards you struggled with (Learning Cards) will strictly remain in your queue, bypassing global limits, until you truly master them.
-- **Defensive Bulk Import**: Capable of concurrently importing massive CSV files. The system validates cards in an isolated environment, ensuring bad data never slows down or corrupts your precious database.
-- **Mobile-First RWD**: Dynamically compiled through Tailwind CSS v3, the layout adapts flawlessly to any screen size (even the iPhone SE), delivering pristine UI/UX operational fluidity.
+- **Architecture**: Single Page Application (SPA), Mobile-First UI
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS v3, Lucide-React
+- **Storage Layer**: IndexedDB (Native API wrapper) for zero-dependency local persistence
+- **Data Parsing**: PapaParse for local client-side CSV processing
+- **Deployment**: Automated CI/CD to GitHub Pages via GitHub Actions
 
-## 🚀 Modern Tech Stack
+## ✨ Core Functionality
 
-After countless hardcore iterations, WordForge has fully detached from its vanilla prototype script, evolving into a modernized engineering matrix:
-*   **Frontend Framework**: React 19 + TypeScript + Vite
-*   **UI/Styling**: Tailwind CSS v3
-*   **Icons**: Lucide-React
-*   **Local Database**: Native IndexedDB API Wrappers (No ORM overhead)
-*   **Parsing Engine**: PapaParse
+- **SM-2 Algorithm Integration**: Dynamically calculates spaced intervals based on cognitive interaction histories (`hard`, `good`, `easy`, `again`).
+- **Zero-Backend Architecture**: All CRUD operations resolve inside the browser storage constraint without establishing backend communication endpoints.
+- **Defensive Data Input Layer**: Features a robust formatting validation system processing bulk CSV uploads without compromising state structure or runtime stability.
+- **Granular Quota Control Systems**: Embeds configurations to enforce global unique daily thresholds separately from individual deck-specific deployment parameters.
+- **Unresolved Queue Isolation**: Prevents daily session completion validation until the `Learning Cards` strict queue clears.
 
-## ✅ Deployment (Mobile Access)
+## 🚀 Setup & Build
 
-WordForge is equipped for **serverless hosting on GitHub Pages**!
-Simply configure your GitHub repo and let the included `deploy.yml` auto-trigger GitHub Actions to build and deploy everything for you.
+Install dependencies:
+```bash
+npm install
+```
 
-Once deployed, simply open `https://[your_username].github.io/wordcards/` on your mobile Safari/Chrome, tap "Add to Home Screen", and it instantly transforms into your personal PWA vocabulary-mastering artifact!
+Start the Vite development server:
+```bash
+npm run dev
+```
 
-## 📜 Version History
-Please read our [CHANGELOG.en.md](./CHANGELOG.en.md) to understand how this system evolved from a fragile logic script into the flawless, industrial-grade fortress it is today, through extreme edge-case pressure testing.
+Run test suite:
+```bash
+npx playwright test
+```
+
+## 🏗️ CI/CD Deployment
+
+The repository utilizes `.github/workflows/deploy.yml` triggered upon pushes to the `main` branch.
+Assets will be bundled with standard paths built off the `/wordcards/` endpoint.
+
+## 📜 Documentation
+
+- Version history: [CHANGELOG.en.md](./CHANGELOG.en.md)
+- 中文版: [README.md](./README.md)

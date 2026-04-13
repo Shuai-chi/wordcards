@@ -1,67 +1,66 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+所有重要變更皆記錄於此文件。本專案遵循 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
 
 ## [v25.1.0] - 2026-04-14
 
 ### Added
-- **Error Diagnostics**: Implemented row-level diagnostic messaging in `csv.ts` that specifies exact line numbers and constraints (length, spacing) when parsing fails.
-- **Storage Monitoring**: Enhanced IndexedDB error handling in `App.tsx` and `db.ts` to capture and unpack stringified DOM `Event` objects to expose core reasons (e.g., storage quota exceeded, Private Browsing blocks).
+- **錯誤診斷機制**: 在 `csv.ts` 中實作逐行診斷訊息，解析失敗時報告具體行號與違規原因（長度、缺欄、空值）。
+- **儲存層監控**: 強化 `App.tsx` 與 `db.ts` 的 IndexedDB 錯誤處理，將 DOM `Event` 物件解包為可讀的錯誤訊息（如儲存空間不足、無痕模式封鎖）。
 
 ### Fixed
-- **UI Interaction**: Removed `e.stopPropagation()` on `LearningView` text elements that previously blocked card-flip toggle events.
-- **Test Stability**: Resolved flaky Playwright end-to-end tests in `wordforge.spec.ts` by replacing implicit timeouts with explicit `waitFor` UI state resolution.
+- **UI 互動**: 移除 `LearningView` 中 `<h1>` 元素的 `e.stopPropagation()`，修復點擊卡片中央無法翻面的問題。
+- **測試穩定性**: 重構 `wordforge.spec.ts`，以明確的 `waitFor` 取代隱式等待，解決 Playwright 端對端測試的間歇性失敗。
 
 ---
 
 ## [v25.0.0] - 2026-04-12
 
 ### Added
-- **Framework Migration**: Refactored the core application from vanilla JavaScript to a React 19 + TypeScript + Vite SPA architecture.
-- **Routing & State Management**: Abstracted UI into independent components (`Dashboard`, `LearningView`, `Modals`) controlled by a top-level state machine.
-- **Styling Architecture**: Replaced custom CSS variables with Tailwind CSS v3 for programmatic RWD styling.
-- **Build Pipeline**: Configured `.github/workflows/deploy.yml` for automated CI/CD deployments to GitHub Pages.
+- **框架遷移**: 從原生 JavaScript 重構為 React 19 + TypeScript + Vite SPA 架構。
+- **元件化路由**: UI 拆分為獨立元件（`Dashboard`、`LearningView`、各 Modal），由頂層狀態機控制。
+- **樣式架構**: 以 Tailwind CSS v3 取代自訂 CSS 變數系統。
+- **建置管線**: 新增 `.github/workflows/deploy.yml`，實現 GitHub Pages 自動化 CI/CD 部署。
 
 ### Changed
-- **Storage Layer**: Migrated from `localStorage` to `IndexedDB` to support unconstrained storage size limits and scalable deck management.
-- **Algorithm State Initialization**: Updated the SM-2 initialization routine to track `introducedDate` logically, preventing state resets on early session exits.
-- **CSV Parser Constraints**: Relaxed legacy custom header validation rules, standardizing to PapaParse default configurations for raw front/back text mapping.
+- **儲存層升級**: 從 `localStorage` 遷移至 `IndexedDB`，解除 5MB 容量限制，支援大量套牌管理。
+- **演算法初始化**: 更新 SM-2 初始化邏輯，正確追蹤 `introducedDate`，防止提前離開造成狀態重置。
+- **CSV 解析規則**: 放寬舊版自訂標頭驗證規則，改以 PapaParse 預設配置處理前後面文字映射。
 
 ---
 
 ## [v24.1.2] - 2026-04-10
 
 ### Added
-- **File System API**: Expanded CSV import capabilities to accept multiple `File` inputs iteratively via asynchronous batch processing.
+- **批量匯入**: CSV 上傳支援多檔案選取，透過非同步迴圈依序處理。
 
 ---
 
 ## [v24.1.1] - 2026-04-10
 
 ### Added
-- **UX State Indicators**: Embedded configuration limit labels (`Global` vs `Deck`) natively inside the Dashboard component tree.
+- **UX 狀態提示**: 在 Dashboard 元件中嵌入全域/套牌配額標籤說明。
 
 ### Fixed
-- **State Mutation Leak**: Stopped empty integer strings from coercing logic variables to null properties when customizing card rate limits.
+- **狀態型別洩漏**: 修復自訂卡片上限輸入空字串時，`parseInt` 錯誤回退至預設值的問題。
 
 ---
 
 ## [v24.1.0] - 2026-04-10
 
 ### Fixed
-- **Audio Thread Leak**: Registered `stopGhostVoice()` execution within transaction `catch` blocks to intercept un-awaited DOM Audio components.
-- **AI Prompt Formatting Rules**: Fixed prompt definitions instructing AI to escape double-quotation constraints that corrupted state machine evaluations.
+- **音訊執行緒洩漏**: 在交易 `catch` 區塊中註冊 `stopGhostVoice()` 執行，攔截未被等待的 DOM Audio 元件。
+- **AI Prompt 格式規則**: 修正提示詞中雙引號限制規則，防止 AI 移除多行 CSV 所需的外層雙引號。
 
 ---
 
-## [v24.0.0] - Prior Architectural Shifts
+## [v24.0.0] - 先前架構變更
 
 ### Changed
-- **Aggregate Logging Structure**: Shifted metric accumulation logic to single source of truth (`uniqueCards` per daily report block) to optimize asynchronous iteration counts.
+- **彙總記錄結構**: 將指標累計邏輯改為單一事實來源（`uniqueCards` per daily report），優化非同步迭代計數。
 
 ### Fixed
-- **Data Races**: Unified IndexedDB `transaction(['decks','cards'])` structures to execute atomic relational commits, addressing previous entity-relationship orphans.
-- **Memory Addressing**: Implemented strict numeric typecasting implementations (`Number(val) || 0 + 1`) natively mitigating cascading `NaN` exceptions during object serialization.
-- **iOS DOM Event Rules**: Migrated Audio initialization functions to fire implicitly alongside User Event Listeners (`touchstart`, `click`), bypassing explicit strict Audio blocking protocol.
-- **Index Corruptions**: Inserted Byte Order Mark (`BOM 0xFEFF`) filters in the parsing layer neutralizing Microsoft Excel invisible string encodings. 
+- **資料競態**: 統一 IndexedDB `transaction(['decks','cards'])` 結構，實現原子性關聯寫入，解決實體關係孤兒問題。
+- **記憶體定址**: 實作嚴格數值型別轉換（`Number(val) || 0 + 1`），原生緩解物件序列化時的 `NaN` 層疊擴散。
+- **iOS DOM 事件規則**: 將 Audio 初始化移至使用者事件監聽器（`touchstart`、`click`）中同步觸發，繞過嚴格的音訊封鎖協議。
+- **索引損毀**: 在解析層插入 BOM（`0xFEFF`）過濾器，中和 Microsoft Excel 隱形字元編碼。
