@@ -22,6 +22,35 @@ A local-first Spaced Repetition System (SRS) client powered by the SM-2 algorith
 - **PWA Offline Mode**: Built-in Service Worker for asset caching, enabling stable operation in offline environments.
 - **Learning Queue Isolation**: Cards in 'Learning' state are retained until mastered, bypassing daily limits.
 
+## 📲 PWA Installation Guide (Web App)
+For the best user experience (full-screen mode, faster startup), it is recommended to install this application as a Web App.
+
+### 🍎 iPhone / iPad (iOS)
+- **Safari Browser**: 
+    1. Tap the **"Share"** button 📤 at the bottom.
+    2. Scroll up in the menu and select **"Add to Home Screen"**.
+    3. Tap "Add" in the top right to complete the setup.
+- **Chrome Browser**:
+    1. Tap the **"Share"** icon on the right side of the address bar.
+    2. Select **"Add to Home Screen"** and follow the prompts.
+
+### 🤖 Android
+- **Google Chrome**:
+    1. Tap the three-dot menu **(⋮)** in the top right.
+    2. Select **"Install app"** or **"Add to Home screen"**.
+    3. Follow the dialog instructions to complete the installation.
+
+### 💻 Desktop
+- **Chrome / Edge**: 
+    1. In the address bar, click the **"Install"** icon (monitor and arrow icon).
+    2. Click "Install" in the popup window.
+
+## 📤 How to Import Vocabulary
+WordForge is local-first. Due to the minimalist design, the import button is located in the top-right corner of the dashboard.
+
+![UI Guide](./public/docs/ui-guide.png)
+*The highlighted area shows the **Import CSV** button location.*
+
 ## 🚀 Setup & Build
 
 Install dependencies:
