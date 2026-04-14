@@ -2,6 +2,15 @@
 
 所有重要變更皆記錄於此文件。本專案遵循 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
 
+## [v25.3.0] - 2026-04-14
+
+### Added
+- **PWA 支援**: 實作 Progressive Web App 功能，支援安裝至行動裝置/桌面，並提供完全離線的背單字體驗。
+- **App 圖標**: 新增高品質 PWA 專用圖標（192px, 512px, Apple Touch Icon）。
+- **離線快取**: 新增 Service Worker 處理核心套件快取與導覽回退機制。
+
+---
+
 ## [v25.2.0] - 2026-04-14
 
 ### Added

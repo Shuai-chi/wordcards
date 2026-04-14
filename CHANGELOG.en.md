@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v25.3.0] - 2026-04-14
+
+### Added
+- **PWA Support**: Implemented Progressive Web App features, enabling installation on mobile/desktop and providing a fully offline study experience.
+- **App Icons**: Added high-quality PWA-specific icons (192px, 512px, apple-touch-icon).
+- **Service Worker**: Added service worker for core asset caching and offline navigation fallback.
+
+---
+
 ## [v25.2.0] - 2026-04-14
 
 ### Added

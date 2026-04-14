@@ -8,16 +8,18 @@ A local-first Spaced Repetition System (SRS) client powered by the SM-2 algorith
 - **Frontend**: React 19, TypeScript, Vite
 - **Styling**: Tailwind CSS v3, Lucide-React
 - **Storage Layer**: IndexedDB (Native API wrapper) for zero-dependency local persistence
-- **Data Parsing**: PapaParse for local client-side CSV processing
-- **Deployment**: Automated CI/CD to GitHub Pages via GitHub Actions
+- **Data Parsing**: PapaParse (Client-side CSV parsing)
+- **Offline Support**: Progressive Web App (PWA) with installable home screen icon and offline functionality
+- **Deployment**: GitHub Actions CI/CD → GitHub Pages
 
 ## ✨ Core Functionality
 
 - **SM-2 Algorithm Integration**: Dynamically calculates spaced intervals based on cognitive interaction histories (`hard`, `good`, `easy`, `again`).
 - **Zero-Backend Architecture**: All CRUD operations resolve inside the browser storage constraint without establishing backend communication endpoints.
 - **Defensive Data Input Layer**: Features a robust formatting validation system processing bulk CSV uploads without compromising state structure or runtime stability.
-- **Granular Quota Control Systems**: Embeds configurations to enforce global unique daily thresholds separately from individual deck-specific deployment parameters.
-- **Unresolved Queue Isolation**: Prevents daily session completion validation until the `Learning Cards` strict queue clears.
+- **Dual quota control**: Global daily new card limits and individual deck quotas.
+- **PWA Offline Mode**: Built-in Service Worker for asset caching, enabling stable operation in offline environments.
+- **Learning Queue Isolation**: Cards in 'Learning' state are retained until mastered, bypassing daily limits.
 
 ## 🚀 Setup & Build
 
