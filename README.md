@@ -6,60 +6,58 @@
 
 WordForge SRS 是一個專為高效記憶設計的數位單字卡工具。它採用科學的 SM-2 演算法，根據您的遺忘曲線動態調整複習時間。
 
-- **SM-2 演算法引擎**: 根據每張卡片的互動歷史（`再次` / `困難` / `良好` / `簡單`）自動計算最佳複習間隔。
-- **純本地端儲存**: 所有的單字資料與學習進度均儲存在瀏覽器的 IndexedDB 中，確保隱私且無需網路連接。
-- **PWA 支援**: 具備 Service Worker 快取機制，支援安裝至手機或桌面，提供如同原生 App 般的完全離線背單字體驗。
-- **強大的匯入功能**: 支援批量 CSV 上傳，並內建嚴格的格式驗證與逐行錯誤診斷機制。
-- **靈活的配額管理**: 全域每日新卡上限與單一套牌獨立配額可分別設定。
+- **SM-2 演算法引擎**: 根據每張卡片的互動歷史（`again` / `hard` / `good` / `easy`）動態計算最佳複習間隔。
+- **純本地端儲存**: 所有 CRUD 操作均在瀏覽器內完成，無需建立伺服器通訊，確保資料隱私與零依賴持久化。
+- **PWA 離線應用**: 具備 Service Worker 快取機制，支援安裝至桌面與完全離線背單字。
+- **防禦性資料匯入**: 支援批量 CSV 上傳，內建格式驗證系統，不合規資料不會影響資料庫穩定性。
+- **雙層配額控制**: 全域每日新卡上限與單一套牌獨立配額可分別設定。
 
 ## 安裝步驟
 
-確保您的系統已安裝 [Node.js](https://nodejs.org/)。
+為了獲得最佳的使用體驗（如全螢幕模式、更快的啟動速度），建議將本應用安裝為 **Web App (PWA)**。
 
-### 本地開發環境設置
-1. **複製儲存庫**：
-   ```bash
-   git clone <repository-url>
-   cd wordcards
-   ```
-2. **安裝依賴套件**：
-   ```bash
-   npm install
-   ```
-3. **啟動開發伺服器**：
-   ```bash
-   npm run dev
-   ```
+### 📲 PWA 安裝指南
+#### 🍎 iPhone / iPad (iOS)
+- **Safari 瀏覽器**: 
+    1. 點擊瀏覽器底部的 **「分享」** 按鈕 📤。
+    2. 在選單中向上滑動，找到並點擊 **「加入主畫面」**。
+    3. 點擊右上角的「新增」，即可在桌面看到 WordForge 圖示。
+#### 🤖 Android 手機
+- **Google Chrome**:
+    1. 點擊右上角的三個點 **(⋮)** 選單。
+    2. 選擇 **「安裝應用程式」** 或 **「新增至主畫面」**。
+#### 💻 電腦版 (Desktop)
+- **Chrome / Edge**: 
+    1. 在瀏覽器網址列的最右端，點擊 **「安裝」** 圖示 (螢幕與箭頭的小圖標)。
+    2. 點擊「安裝」後，WordForge 將會以獨立視窗開啟。
 
-### 測試與驗證
-- **執行 Playwright E2E 測試**：
-  ```bash
-  npx playwright test
-  ```
+---
 
-### 部署說明
-專案使用 GitHub Actions (`.github/workflows/deploy.yml`)，於推送至 `main` 分支時自動觸發建置，並部署至 GitHub Pages。
+### 🚀 開發者建置說明 (選用)
+如果您是開發者並想在本地執行本專案：
+```bash
+npm install     # 安裝依賴
+npm run dev     # 啟動開發伺服器
+npx playwright test # 執行測試
+```
 
 ## 使用方法
 
-### 匯入單字
-WordForge 採用純本地儲存。匯入按鈕位於頁面右上角：
+### 📤 如何匯入單字
+WordForge 採用純本地儲存。匯入按鈕位於頁面右上角。
 ![UI Guide](./public/docs/ui-guide.png)
 1. 準備一份 CSV 檔案，格式為 `正面文字,背面文字`。
-2. 點擊右上角的 **「匯入 CSV」** 按鈕上傳。
+2. 點擊標示處的 **「匯入 CSV」** 按鈕進行上傳。
 
-### PWA 安裝指南 (推薦使用 Web App)
-為了獲得最佳體驗（如全螢幕模式、更快的啟動速度），建議安裝：
-- **iOS (Safari)**: 點擊 **「分享」** 按鈕 📤，選擇 **「加入主畫面」**。
-- **Android (Chrome)**: 點擊選單 **(⋮)**，選擇 **「安裝應用程式」** 或 **「新增至主畫面」**。
-- **電腦版 (Chrome/Edge)**: 點擊網址列右端的 **「安裝」** 圖示。
+### 核心操作
+- **套牌選取**: 支援「全選」、「取消全選」、「反向全選」，方便快速調整學習計畫。
+- **學習佇列**: Learning 狀態卡片強制留存，不受每日上限約束，直到學習完畢。
 
 ## 技術棧
 
-- **前端框架**: React 19, TypeScript
-- **建置工具**: Vite
+- **架構**: Single Page Application (SPA)，Mobile-First 響應式設計
+- **前端框架**: React 19, TypeScript, Vite
 - **UI 樣式**: Tailwind CSS v3, Lucide-React
-- **儲存技術**: IndexedDB (原生 API 封裝)
-- **資料解析**: PapaParse (客戶端 CSV 解析)
-- **離線支援**: Progressive Web App (PWA)
-- **部署**: GitHub Actions, GitHub Pages
+- **儲存層**: IndexedDB（原生 API 封裝）
+- **資料解析**: PapaParse（客戶端 CSV 解析）
+- **CI/CD**: GitHub Actions, GitHub Pages
