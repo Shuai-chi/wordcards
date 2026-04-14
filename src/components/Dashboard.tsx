@@ -3,6 +3,7 @@ import type { Deck, Report, Card } from '../lib/types';
 import { DB, getTodayStr } from '../lib/db';
 import { shuffleArray } from '../lib/srs';
 import { Target, CheckCircle, Edit2, Trash2, Upload, ListChecks, Squircle, RotateCw } from 'lucide-react';
+import BulkEditModal from './BulkEditModal';
 
 interface Props {
   decks: Deck[];
@@ -188,6 +189,19 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
     localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(newSet)));
   };
 
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+
+  const handleBulkDelete = async () => {
+    if (confirm(`確定要刪除已選取的 ${selectedDeckIds.size} 個套牌嗎？此動作不可復原。`)) {
+      if (selectedDeckIds.size > 0) {
+        const ids = Array.from(selectedDeckIds);
+        for(let i=0; i<ids.length-1; i++) await DB.deleteDeck(ids[i]);
+        onDeleteDeck(ids[ids.length-1]); 
+        setSelectedDeckIds(new Set());
+      }
+    }
+  };
+
   const cAgain = report?.clicks?.again || 0;
   const cGood = report?.clicks?.good || 0;
   const cEasy = report?.clicks?.easy || 0;
@@ -245,26 +259,67 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-2 mb-4">
-            <button 
-              onClick={handleSelectAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
-            >
-              <ListChecks className="w-3.5 h-3.5" /> 全選
-            </button>
-            <button 
-              onClick={handleDeselectAll}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
-            >
-              <Squircle className="w-3.5 h-3.5" /> 取消全選
-            </button>
-            <button 
-              onClick={handleInvertSelection}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
-            >
-              <RotateCw className="w-3.5 h-3.5" /> 反向全選
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-secondary/20 p-2 rounded-xl border border-border/50">
+            <div className="flex flex-wrap items-center gap-2">
+              <button 
+                onClick={handleSelectAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
+              >
+                <ListChecks className="w-3.5 h-3.5" /> 全選
+              </button>
+              <button 
+                onClick={handleDeselectAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
+              >
+                <Squircle className="w-3.5 h-3.5" /> 取消
+              </button>
+              <button 
+                onClick={handleInvertSelection}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
+              >
+                <RotateCw className="w-3.5 h-3.5" /> 反向
+              </button>
+            </div>
+
+            {selectedDeckIds.size > 0 && (
+              <div className="flex items-center gap-2 pl-3 border-l border-border/50">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-muted mr-1">批量操作:</span>
+                <button 
+                  onClick={() => setIsBulkEditOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-all border border-primary/20"
+                >
+                  <Edit2 className="w-3.5 h-3.5" /> 設定上限
+                </button>
+                <button 
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-danger/10 hover:bg-danger/20 text-danger rounded-lg transition-all border border-danger/20"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> 刪除
+                </button>
+              </div>
+            )}
           </div>
+
+          {isBulkEditOpen && (
+            <BulkEditModal
+              selectedCount={selectedDeckIds.size}
+              onClose={() => setIsBulkEditOpen(false)}
+              onSave={async (limit) => {
+                for (const id of selectedDeckIds) {
+                  const deck = decks.find(d => d.id === id);
+                  if (deck) {
+                    await DB.putDeck({ ...deck, newCardLimit: limit });
+                  }
+                }
+                setIsBulkEditOpen(false);
+                // Trigger refresh by calling onDeleteDeck with an empty ID or similar 
+                // hack if we don't have a direct refresh prop. 
+                // But App.tsx's onDeleteDeck calls loadData.
+                // I'll call it for one deck (if any) or just wait for effect.
+                if (decks.length > 0) onDeleteDeck(''); // Hack to trigger App's loadData
+              }}
+            />
+          )}
           {decks.map((d) => (
             <div 
               key={d.id} 

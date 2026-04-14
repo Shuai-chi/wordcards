@@ -33,11 +33,31 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Navigation requests (index.html) -> Network First
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, response.clone());
+            return response;
+          });
+        })
+        .catch(() => {
+          return caches.match('/wordcards/index.html') || caches.match('/wordcards/');
+        })
+    );
+    return;
+  }
+
+  // Other assets -> Cache First, fall back to Network
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).then((newResponse) => {
         // Cache new local assets on the fly
-        if (event.request.url.startsWith(self.location.origin) && event.request.method === 'GET') {
+        if (event.request.url.startsWith(self.location.origin) && 
+            event.request.method === 'GET' && 
+            !event.request.url.includes('chrome-extension')) {
           return caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, newResponse.clone());
             return newResponse;
@@ -45,11 +65,6 @@ self.addEventListener('fetch', (event) => {
         }
         return newResponse;
       });
-    }).catch(() => {
-      // Offline fallback for navigation
-      if (event.request.mode === 'navigate') {
-        return caches.match('/wordcards/index.html');
-      }
     })
   );
 });
