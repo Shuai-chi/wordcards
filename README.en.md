@@ -17,6 +17,7 @@ A local-first Spaced Repetition System (SRS) client powered by the SM-2 algorith
 - **SM-2 Algorithm Integration**: Dynamically calculates spaced intervals based on cognitive interaction histories (`hard`, `good`, `easy`, `again`).
 - **Zero-Backend Architecture**: All CRUD operations resolve inside the browser storage constraint without establishing backend communication endpoints.
 - **Defensive Data Input Layer**: Features a robust formatting validation system processing bulk CSV uploads without compromising state structure or runtime stability.
+- **Bulk Selection Controls**: Added "Select All", "Deselect All", and "Invert Selection" for rapid study plan adjustments.
 - **Dual quota control**: Global daily new card limits and individual deck quotas.
 - **PWA Offline Mode**: Built-in Service Worker for asset caching, enabling stable operation in offline environments.
 - **Learning Queue Isolation**: Cards in 'Learning' state are retained until mastered, bypassing daily limits.

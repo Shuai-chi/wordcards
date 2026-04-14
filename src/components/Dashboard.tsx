@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import type { Deck, Report, Card } from '../lib/types';
 import { DB, getTodayStr } from '../lib/db';
 import { shuffleArray } from '../lib/srs';
-import { Target, CheckCircle, Edit2, Trash2, Upload } from 'lucide-react';
+import { Target, CheckCircle, Edit2, Trash2, Upload, ListChecks, Squircle, RotateCw } from 'lucide-react';
 
 interface Props {
   decks: Deck[];
@@ -167,6 +167,27 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
     }
   };
 
+  const handleSelectAll = () => {
+    const allIds = new Set(decks.map(d => d.id));
+    setSelectedDeckIds(allIds);
+    localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(allIds)));
+  };
+
+  const handleDeselectAll = () => {
+    const empty = new Set<string>();
+    setSelectedDeckIds(empty);
+    localStorage.setItem('srs_selected_decks', JSON.stringify([]));
+  };
+
+  const handleInvertSelection = () => {
+    const newSet = new Set<string>();
+    decks.forEach(d => {
+      if (!selectedDeckIds.has(d.id)) newSet.add(d.id);
+    });
+    setSelectedDeckIds(newSet);
+    localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(newSet)));
+  };
+
   const cAgain = report?.clicks?.again || 0;
   const cGood = report?.clicks?.good || 0;
   const cEasy = report?.clicks?.easy || 0;
@@ -224,6 +245,26 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
         </div>
       ) : (
         <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <button 
+              onClick={handleSelectAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
+            >
+              <ListChecks className="w-3.5 h-3.5" /> 全選
+            </button>
+            <button 
+              onClick={handleDeselectAll}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
+            >
+              <Squircle className="w-3.5 h-3.5" /> 取消全選
+            </button>
+            <button 
+              onClick={handleInvertSelection}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-secondary/50 hover:bg-secondary text-muted hover:text-foreground rounded-lg transition-all border border-border"
+            >
+              <RotateCw className="w-3.5 h-3.5" /> 反向全選
+            </button>
+          </div>
           {decks.map((d) => (
             <div 
               key={d.id} 

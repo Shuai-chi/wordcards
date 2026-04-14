@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v25.4.0] - 2026-04-14
+
+### Added
+- **Deck Selection Optimization**: Added "Select All", "Deselect All", and "Invert Selection" buttons to the Learning Center.
+- **State Persistence**: Bulk selection actions are now correctly synced with local storage and persist across app restarts.
+
+---
+
 ## [v25.3.0] - 2026-04-14
 
 ### Added
