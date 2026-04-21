@@ -36,10 +36,11 @@ export function parseCSV(file: File, deckId: string, groupName: string): Promise
           let morphology, phonetic, partOfSpeech, definition, example, collocations, contextType;
           
           if (row.length >= 8) {
-            // New 8-column format: Word, Morphology, IPA, POS, Definition, Example, Collocations, Context_Type
-            morphology = row[1]?.trim();
-            phonetic = row[2]?.trim();
-            partOfSpeech = row[3]?.trim();
+            // New 8-column format matched with academic generator output:
+            // Word, IPA, POS, Inflections, Definition, Example, Collocations, Context_Type
+            phonetic = row[1]?.trim();
+            partOfSpeech = row[2]?.trim();
+            morphology = row[3]?.trim();
             definition = row[4]?.trim();
             example = row[5]?.trim();
             collocations = row[6]?.trim();
