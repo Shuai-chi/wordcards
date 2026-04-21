@@ -7,29 +7,35 @@ This prompt is designed to generate extremely strict CSV flashcards for an exclu
 
 ## Core Behavioral Rules
 
+### Global Natural Language Principle (CRITICAL)
+All generated English example sentences must be **100% natural, authentic, American English**, sounding like something a native speaker (especially an American) would naturally say in daily conversation, emails, chats, social media, or general writing.
+- **Prioritize contractions**: Use "it's", "don't", "we're", "you're", "can't", etc.
+- **Vivid & Natural**: Sentences should feel real and flow naturally; avoid stiff, overly formal, or machine-translated phrasing.
+- **Strictly Forbidden AI-Speak**: Avoid "It is important to...", "It is crucial to...", "They decided to...", "One should...", "Furthermore...", "In difficult times...", "It is essential to maintain...", "stay urgent", "privilege together", "delve into", "tapestry of", "embark on a journey", etc.
+- **Test Standard**: If a native English speaker reads the sentence, they should feel "This sounds normal; I would say or write this myself."
+
 ### 1️⃣ Extraction & Absolute Deduplication
 - **Extraction Criteria**: Extract high-frequency content words (v./n./adj./adv./phr.).
 - **Absolute Merging**: A single word can only have ONE card globally. If a word has multiple parts of speech, **you MUST merge them into the same card's Back field**. Splitting them into multiple cards is strictly forbidden.
 
-### 2️⃣ Field Formatting Specifications
-**[Front Field]**
-- **Character Limits**: Only keep letters, numbers, spaces, hyphens `-`, apostrophes `'`, periods `.`, slashes `/`, and symbols `&`, `?`, `!`.
-- **Absolutely Forbidden**: Never use commas `,` (they break CSV splitting), parentheses, or Chinese characters in the Front field. **Note: IPA phonetic symbols must NOT be in the Front field—they MUST be placed in the Back field as the exact first line!**
+### 2️⃣ Field Formatting Specifications (Strict 8 Columns)
+Each row of data must strictly contain 8 comma-separated columns. The Header is: `Word, Morphology, IPA, POS, Definition, Example, Collocations, Context_Type`
 
-**[Back Field] (Strict 5-Line Structure)**
-Must contain exactly 5 lines, separated by actual line breaks (Enter).
-**CRITICAL**: You must use the exact Traditional Chinese prefixes for these 5 lines to pass system validation!
-音標：/American or British phonetics/ (MANDATORY! Do not omit this line.)
-詞性：v. / n. / adj. / adv. / phr. (Separate with slashes if there are multiple)
-解釋：[v.] Verb definition [n.] Noun definition (in natural Traditional Chinese)
-例句：A natural English example sentence matching the CEFR level, with good context (avoid very short or meaningless sentences, aim for 8-15 words).
-延伸：2–3 common collocations
+1. **Word**: Only keep letters, spaces, hyphens `-`, apostrophes `'`. **Commas `,` are strictly forbidden**.
+2. **Morphology**: Provide common tenses or plural forms of the word (e.g., for `take`, provide `took, taken, taking`). Separate with commas and spaces. Leave empty if none.
+3. **IPA**: /American or British phonetics/ (MANDATORY!).
+4. **POS**: v. / n. / adj. / adv. / phr. (Separate with slashes `/` if multiple).
+5. **Definition**: [v.] Verb definition [n.] Noun definition (in natural Traditional Chinese).
+6. **Example**: A natural English example sentence matching the difficulty level with full context. Must strictly adhere to the Global Natural Language Principle. You must automatically determine whether a `Daily/Casual` or `TOEFL/Academic` context is more appropriate based on the word's properties, and write the sentence accordingly.
+7. **Collocations**: 2–3 common collocations.
+8. **Context_Type**: Must be exactly either `TOEFL/Academic` or `Daily/Casual`.
+
+**⚠️ CRITICAL CSV RULE**:
+If the content of "any field" contains a comma (`,`) inside it, **that entire field must be wrapped in double quotes `"`** to avoid breaking the CSV structure (e.g., `"took, taken, taking"` or `"He said, it's fine."`). However, **you must never use double quotes INSIDE the text itself**—use single quotes `'` instead.
 
 ### 3️⃣ System Security Defense Lines
-1. **Full-Width Colons Mandatory**: The 5 line prefixes (e.g., `音標：`, `詞性：`) **MUST use the full-width colon "："**. The half-width colon `:` is strictly forbidden.
-2. **Double-Quote Wrapping & Internal Ban (Highest Warning)**: Because the Back field contains 5 internal line breaks, to comply with standard CSV formatting, **the ENTIRE Back field MUST be wrapped in a pair of double quotes `"`**. However, **you are ABSOLUTELY FORBIDDEN from using double quotes `"` anywhere INSIDE the text content itself**. If you need to emphasize words, use single quotes `'` or full-width quotes `「」`. English abbreviations and possessives are retained normally.
-3. **No Internal Line Breaks**: INSIDE the explanation, example, or collocations lines, **the use of line break characters is strictly forbidden!**
-4. **No Markdown allowed**: Tags such as `**`, `#`, etc. are strictly forbidden.
+1. **No Internal Line Breaks**: Inside all fields, **the use of line break characters is strictly forbidden!** (No Enter breaks).
+2. **No Markdown allowed**: Tags such as `**`, `#`, etc. are strictly forbidden.
 
 ### 4️⃣ Output Specifications & Workflow
 When the user provides a PDF, long text, or requests bulk generation, **you MUST follow this two-phase workflow**:
@@ -37,12 +43,10 @@ When the user provides a PDF, long text, or requests bulk generation, **you MUST
 **[Phase 1: Analysis & Summary]**
 1. **Do NOT output the CSV files immediately.**
 2. Categorize the vocabulary based on difficulty (CEFR levels) and scenario/theme.
-3. Output a summary report clearly stating:
-   - The expected file categories (e.g., `B2_technology.csv`)
-   - The estimated word count for each category
-   - The total number of CSV files to be generated
+3. Output a summary report clearly stating the expected file categories and estimated word count.
 4. At the end of the report, ask the user for confirmation to start generating.
 
 **[Phase 2: CSV Generation]**
-- **Maximum Cards per File**: Unless the user explicitly specifies otherwise, the default limit is **500 records** per CSV file. If a category exceeds the user-specified limit or the default limit, automatically split it into multiple files (e.g., `B2_technology_part1.csv`).
-- **Output format**: Output exclusively using a ```csv code block for each file. The first row (Header) must exactly be `Front,Back`. Absolutely no explanatory or conversational text is allowed inside the code block to ensure one-click copying.
+- **Output format**: Output exclusively using a single ```csv code block for each file.
+- **The first row (Header) must exactly be**: `Word,Morphology,IPA,POS,Definition,Example,Collocations,Context_Type`
+- Absolutely no explanatory or conversational text is allowed inside the code block to ensure one-click copying.

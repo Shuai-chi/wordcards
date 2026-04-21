@@ -21,6 +21,13 @@ export interface Card {
   group: string;
   front: string;
   back: string;
+  morphology?: string;
+  phonetic?: string;
+  partOfSpeech?: string;
+  definition?: string;
+  example?: string;
+  collocations?: string;
+  contextType?: string;
   state: CardState;
   interval: number;
   easeFactor: number;

@@ -4,6 +4,35 @@ import { updateSRS } from '../lib/srs';
 import { DB, getTodayStr } from '../lib/db';
 import { Volume2, Hash } from 'lucide-react';
 
+function highlightWord(text: string, front: string, morphology?: string) {
+  if (!text) return text;
+  
+  const wordsToHighlight = [front];
+  if (morphology) {
+    const morphs = morphology.split(',').map(s => s.trim()).filter(Boolean);
+    wordsToHighlight.push(...morphs);
+  }
+  
+  wordsToHighlight.sort((a, b) => b.length - a.length);
+  if (wordsToHighlight.length === 0 || !wordsToHighlight[0]) return <>{text}</>;
+  
+  const escapedWords = wordsToHighlight.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  // Use a case-insensitive regex without strict word boundaries to handle prefixes/suffixes seamlessly
+  const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
+  
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (i % 2 === 1) { 
+          return <mark key={i} className="bg-yellow-500/90 dark:bg-yellow-400/80 text-black px-1 rounded font-semibold">{part}</mark>;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 interface Props {
   queue: Card[];
   setQueue: React.Dispatch<React.SetStateAction<Card[]>>;
@@ -145,27 +174,57 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
           
           {showAnswer && (
             <div className="w-full max-w-full transform transition-all duration-300 ease-out translate-y-0 opacity-100 mt-6 border-t border-border/50 pt-8 text-left text-base md:text-lg text-card-foreground leading-relaxed">
-              {currentCard.back.split('\n').map((line, i) => {
-                const trimmed = line.trim();
-                let className = "mb-3 last:mb-0";
-                
-                // Styling heuristics
-                if (trimmed.startsWith('音標：') || trimmed.startsWith('音标：')) {
-                  className = "font-mono text-accent text-sm md:text-base font-bold mb-4 tracking-wide";
-                } else if (trimmed.startsWith('意思：')) {
-                  className = "font-bold text-lg md:text-xl text-primary mb-4";
-                } else if (trimmed.startsWith('例句：')) {
-                  className = "text-muted italic border-l-2 border-border pl-3 mb-4";
-                } else if (trimmed.startsWith('搭配：')) {
-                  className = "font-medium text-foreground bg-secondary/50 p-2 rounded-md inline-block mb-3";
-                }
+              {(currentCard.example || currentCard.definition) ? (
+                <div className="flex flex-col text-left w-full">
+                  {currentCard.phonetic && currentCard.phonetic !== '無' && (
+                    <div className="font-mono text-accent text-sm md:text-base font-bold mb-4 tracking-wide">
+                      {currentCard.phonetic}
+                    </div>
+                  )}
+                  {currentCard.definition && (
+                    <div className="font-bold text-lg md:text-xl text-primary mb-4">
+                      {currentCard.partOfSpeech ? `[${currentCard.partOfSpeech}] ` : ''}{currentCard.definition}
+                    </div>
+                  )}
+                  {currentCard.example && (
+                    <div className="text-muted italic border-l-2 border-border pl-3 mb-4">
+                      {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
+                    </div>
+                  )}
+                  {currentCard.collocations && currentCard.collocations !== '無' && (
+                    <div className="font-medium text-foreground bg-secondary/50 p-2 rounded-md inline-block mb-3">
+                      {currentCard.collocations}
+                    </div>
+                  )}
+                  {currentCard.contextType && (
+                    <div className="text-xs text-muted/70 mt-2 flex justify-end">
+                      <span className="bg-secondary/80 px-2 py-1 rounded">標籤：{currentCard.contextType}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                currentCard.back.split('\n').map((line, i) => {
+                  const trimmed = line.trim();
+                  let className = "mb-3 last:mb-0";
+                  
+                  // Styling heuristics
+                  if (trimmed.startsWith('音標：') || trimmed.startsWith('音标：')) {
+                    className = "font-mono text-accent text-sm md:text-base font-bold mb-4 tracking-wide";
+                  } else if (trimmed.startsWith('意思：')) {
+                    className = "font-bold text-lg md:text-xl text-primary mb-4";
+                  } else if (trimmed.startsWith('例句：')) {
+                    className = "text-muted italic border-l-2 border-border pl-3 mb-4";
+                  } else if (trimmed.startsWith('搭配：')) {
+                    className = "font-medium text-foreground bg-secondary/50 p-2 rounded-md inline-block mb-3";
+                  }
 
-                return (
-                  <div key={i} className={className}>
-                    {trimmed.replace(/^(音標：|音标：|意思：|例句：|搭配：)/, '')}
-                  </div>
-                );
-              })}
+                  return (
+                    <div key={i} className={className}>
+                      {trimmed.replace(/^(音標：|音标：|意思：|例句：|搭配：)/, '')}
+                    </div>
+                  );
+                })
+              )}
             </div>
           )}
         </div>
