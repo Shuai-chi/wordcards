@@ -1,63 +1,27 @@
 # Changelog
 
-所有重要變更皆記錄於此文件。本專案遵循 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
+All notable changes to this project will be documented in this file.
 
-## [v25.4.0] - 2026-04-14
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### [新增]
-- **套牌選取優化**: 在學習中心新增「全選」、「取消全選」與「反向全選」快速控制按鈕。
-- **持久化狀態**: 大量選取動作現在會正確同步到本地儲存層，重啟 App 後依然保留選擇。
-
-## [v25.3.0] - 2026-04-14
+## [1.1.0] - 2026-04-21
 
 ### [新增]
-- **PWA 支援**: 實作 Progressive Web App 功能，支援安裝至行動裝置/桌面，並提供完全離線的背單字體驗。
-- **App 圖標**: 新增高品質 PWA 專用圖標（192px, 512px, Apple Touch Icon）。
-- **離線快取**: 新增 Service Worker 處理核心套件快取與導覽回退機制。
-
-## [v25.2.0] - 2026-04-14
-
-### [新增]
-- **套牌進度追蹤**: 在每個套牌卡片中新增「已抽卡/總卡片」計數與漸層動畫進度條，進度條顏色隨完成度自動變化（紫→藍→綠）。
-
-## [v25.1.0] - 2026-04-14
-
-### [新增]
-- **錯誤診斷機制**: 在 `csv.ts` 中實作逐行診斷訊息，解析失敗時報告具體行號與違規原因（長度、缺欄、空值）。
-- **儲存層監控**: 強化 `App.tsx` 與 `db.ts` 的 IndexedDB 錯誤處理，將 DOM `Event` 物件解包為可讀的錯誤訊息（如儲存空間不足、無痕模式封鎖）。
+- 支援高品質 8 欄位單字卡結構：`Word`, `IPA`, `POS`, `Inflections`, `Definition`, `Example`, `Collocations`, `Context_Type`。
+- 新增學術 (TOEFL/Academic) 與生活 (Daily/Casual) 語境標籤支援。
+- 新增單字形態變化 (Inflections) 的顯示邏輯。
 
 ### [修正]
-- **UI 互動**: 移除 `LearningView` 中 `<h1>` 元素的 `e.stopPropagation()`，修復點擊卡片中央無法翻面的問題。
-- **測試穩定性**: 重構 `wordforge.spec.ts`，以明確的 `waitFor` 取代隱式等待，解決 Playwright 端對端測試的間歇性失敗。
-
-## [v25.0.0] - 2026-04-12
-
-### [新增]
-- **框架遷移**: 從原生 JavaScript 重構為 React 19 + TypeScript + Vite SPA 架構。
-- **元件化路由**: UI 拆分為獨立元件（`Dashboard`、`LearningView`、各 Modal），由頂層狀態機控制。
-- **樣式架構**: 以 Tailwind CSS v3 取代自訂 CSS 變數系統。
-- **建置管線**: 新增 `.github/workflows/deploy.yml`，實現 GitHub Pages 自動化 CI/CD 部署。
+- 修正 CSV 解析器 (CSV Parser) 的欄位對應順序，以匹配高品質單字生成規範。
+- 修正 `Definition` 欄位中詞性前綴重複顯示的問題（現在詞性標記由系統動態生成）。
+- 解決 PapaParse 解析包含特殊符號或亂碼之 CSV 時數量不正確的問題。
 
 ### [變更]
-- **儲存層升級**: 從 `localStorage` 遷移至 `IndexedDB`，解除 5MB 容量限制，支援大量套牌管理。
-- **演算法初始化**: 更新 SM-2 初始化邏輯，正確追蹤 `introducedDate`，防止提前離開造成狀態重置。
-- **CSV 解析規則**: 放寬舊版自訂標頭驗證規則，改以 PapaParse 預設配置處理前後面文字映射。
+- 更新 `README.md` 以反映最新的 8 欄位結構與使用規範。
+- 更新 `prompts/` 提示詞規範，建議改用「每批次 30 字」以確保例句品質。
+- 強化對美式口語縮寫 (Contractions) 的支援。
 
-## [v24.1.2] - 2026-04-10
-
-### [新增]
-- **批量匯入**: CSV 上傳支援多檔案選取，透過非同步迴圈依序處理。
-
-## [v24.1.1] - 2026-04-10
-
-### [新增]
-- **UX 狀態提示**: 在 Dashboard 元件中嵌入全域/套牌配額標籤說明。
-
-### [修正]
-- **狀態型別洩漏**: 修復自訂卡片上限輸入空字串時，`parseInt` 錯誤回退至預設值的問題。
-
-## [v24.1.0] - 2026-04-10
-
-### [修正]
-- **音訊執行緒洩漏**: 在交易 `catch` 區塊中註冊 `stopGhostVoice()` 執行，攔截未被等待的 DOM Audio 元件。
-- **AI Prompt 格式規則**: 修正提示詞中雙引號限制規則，防止 AI 移除多行 CSV 所需的外層雙引號。
+## [1.0.0] - 2026-04-14
+- 初始版本發布。
+- 基本 SRS 功能與 CSV 匯入。
