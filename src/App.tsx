@@ -135,6 +135,10 @@ function App() {
             }}
             onEditDeck={(d) => setEditingDeck(d)}
             onDeleteDeck={async (id) => {
+              if (!id) {
+                loadData();
+                return;
+              }
               if (confirm('確定要刪除這組套牌嗎？')) {
                 await DB.deleteDeck(id);
                 loadData();
