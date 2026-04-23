@@ -64,28 +64,32 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     // Cancel previous speech to prevent overlapping or deadlocks
     window.speechSynthesis.cancel();
     
-    const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Select the best available English voice
-    const voices = window.speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
-                   voices.find(v => v.lang.startsWith('en')) ||
-                   voices[0];
-    
-    if (enVoice) {
-      utterance.voice = enVoice;
-    }
-    
-    utterance.lang = 'en-US';
-    utterance.rate = 0.8;
-    utterance.pitch = 1.0;
-    
-    utterance.onerror = (event) => {
-      console.error("TTS Error Detail:", event);
-      setAudioError(true);
-    };
-    
-    window.speechSynthesis.speak(utterance);
+    // Tiny delay to ensure previous speech is fully cancelled
+    setTimeout(() => {
+      // Add a leading comma or space to give the engine time to "warm up" 
+      // and prevent front-clipping of short words.
+      const utterance = new SpeechSynthesisUtterance(", " + text);
+      
+      const voices = window.speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
+                     voices.find(v => v.lang.startsWith('en')) ||
+                     voices[0];
+      
+      if (enVoice) {
+        utterance.voice = enVoice;
+      }
+      
+      utterance.lang = 'en-US';
+      utterance.rate = 0.8;
+      utterance.pitch = 1.0;
+      
+      utterance.onerror = (event) => {
+        console.error("TTS Error Detail:", event);
+        setAudioError(true);
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    }, 50); // 50ms delay is usually enough
   };
 
   useEffect(() => {
