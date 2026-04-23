@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Card } from '../lib/types';
 import { updateSRS } from '../lib/srs';
 import { DB, getTodayStr } from '../lib/db';
-import { Volume2, Hash } from 'lucide-react';
+import { Volume2, Hash, Layers, Quote, Link2 } from 'lucide-react';
 
 function highlightWord(text: string, front: string, morphology?: string) {
   if (!text) return text;
@@ -17,7 +17,6 @@ function highlightWord(text: string, front: string, morphology?: string) {
   if (wordsToHighlight.length === 0 || !wordsToHighlight[0]) return <>{text}</>;
   
   const escapedWords = wordsToHighlight.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  // Use a case-insensitive regex without strict word boundaries to handle prefixes/suffixes seamlessly
   const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
   
   const parts = text.split(regex);
@@ -25,7 +24,7 @@ function highlightWord(text: string, front: string, morphology?: string) {
     <>
       {parts.map((part, i) => {
         if (i % 2 === 1) { 
-          return <mark key={i} className="bg-yellow-500/90 dark:bg-yellow-400/80 text-black px-1 rounded font-semibold">{part}</mark>;
+          return <mark key={i} className="bg-yellow-500/80 dark:bg-yellow-400/70 text-black px-0.5 rounded font-semibold">{part}</mark>;
         }
         return <span key={i}>{part}</span>;
       })}
@@ -46,58 +45,41 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
   const [totalInitial] = useState(queue.length);
   const [audioError, setAudioError] = useState(false);
 
-  // For processing double-click prevention
   const isRatingRef = useRef(false);
 
   useEffect(() => {
     if (queue.length > 0 && !currentCard) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentCard(queue[0]);
     }
   }, [queue, currentCard]);
 
-  // Audio Reading
   const readText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     setAudioError(false);
-
-    // 1. Cancel any ongoing speech
     window.speechSynthesis.cancel();
-
-    // 2. Immediate "Wake up" utterance (Silent)
-    // This forces the OS audio pipeline to open on desktop browsers
+    
     const wakeUp = new SpeechSynthesisUtterance("");
     wakeUp.volume = 0;
     window.speechSynthesis.speak(wakeUp);
-
-    // 3. Main utterance after a safer delay (500ms for desktop hardware wake-up)
+    
     setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(". . . " + text);
-
       const voices = window.speechSynthesis.getVoices();
       const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
                      voices.find(v => v.lang.startsWith('en')) ||
                      voices[0];
-
+      
       if (enVoice) utterance.voice = enVoice;
-
       utterance.lang = 'en-US';
       utterance.rate = 0.8;
       utterance.pitch = 1.0;
-
-      utterance.onerror = (event) => {
-        console.error("TTS Error Detail:", event);
-        setAudioError(true);
-      };
-
+      utterance.onerror = () => setAudioError(true);
       window.speechSynthesis.speak(utterance);
     }, 500); 
   };
 
-
   useEffect(() => {
     if (currentCard && !showAnswer) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       readText(currentCard.front);
     }
   }, [currentCard, showAnswer]);
@@ -106,7 +88,6 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     if (!currentCard || !showAnswer || isRatingRef.current) return;
     isRatingRef.current = true;
     
-    // Shift queue
     const [, ...rest] = queue;
     const isFirstTouchToday = currentCard.lastReviewedDate !== getTodayStr();
     const previousRating = currentCard.todayRating;
@@ -123,12 +104,10 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     
     setQueue(newQueue);
     setShowAnswer(false);
-    setCurrentCard(null); // will be populated by useEffect
+    setCurrentCard(null);
     window.speechSynthesis.cancel();
 
-    // Async commit to DB
     await DB.commitReview(updatedCard, getTodayStr(), ratingKey, isFirstTouchToday, previousRating);
-
     isRatingRef.current = false;
     
     if (newQueue.length === 0) {
@@ -136,7 +115,6 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     }
   }, [currentCard, showAnswer, queue, seenIds, onFinish, setQueue]);
 
-  // Keep a ref to the latest handleRate to avoid stale closures in keydown listener
   const handleRateRef = useRef(handleRate);
   useEffect(() => { handleRateRef.current = handleRate; }, [handleRate]);
 
@@ -167,154 +145,138 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-180px)]">
-      <div className="mb-4">
-        <div className="flex justify-between text-xs text-muted font-medium mb-1.5 px-1">
-          <span>剩餘 {queue.length} 張卡片</span>
-          <span>進度 {Math.round(progress)}%</span>
+      <div className="mb-4 px-2">
+        <div className="flex justify-between text-[10px] text-muted-foreground/60 font-bold tracking-widest mb-2 uppercase">
+          <span>Remaining: {queue.length}</span>
+          <span>Progress: {Math.round(progress)}%</span>
         </div>
-        <div className="w-full bg-secondary h-2.5 rounded-full overflow-hidden">
-          <div className="bg-primary h-full transition-all duration-300 ease-out" style={{ width: `${progress}%` }}></div>
+        <div className="w-full bg-secondary/50 h-1.5 rounded-full overflow-hidden">
+          <div className="bg-primary h-full transition-all duration-500 ease-in-out" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
 
       <div 
-        className="flex-1 bg-card border border-border shadow-md rounded-2xl p-6 md:p-10 flex flex-col overflow-y-auto cursor-pointer relative"
+        className="flex-1 bg-card border border-border/60 shadow-xl rounded-3xl p-6 md:p-12 flex flex-col overflow-y-auto relative transition-all duration-300"
         onClick={() => !showAnswer && setShowAnswer(true)}
       >
-        {audioError && <div className="absolute top-4 right-4 text-xs text-danger flex items-center"><Hash className="w-3 h-3 mr-1"/> 發音無效</div>}
-        <div className="absolute top-4 left-4 bg-secondary text-muted text-xs px-2 py-1 rounded font-medium flex items-center">
-          {currentCard.state === 'new' ? '新' : currentCard.state === 'graduated' ? '複' : '學'} 
-          {currentCard.failCount > 0 ? ` · 錯 ${currentCard.failCount}` : ''}
+        {audioError && <div className="absolute top-6 right-6 text-[10px] text-danger font-bold uppercase tracking-tighter">Audio Error</div>}
+        <div className="absolute top-6 left-6 flex gap-2">
+           <span className="bg-secondary/60 text-muted-foreground text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border border-border/20">
+            {currentCard.state === 'graduated' ? 'Mastered' : 'Learning'}
+          </span>
         </div>
         
         <div className="flex-1 flex flex-col justify-center items-center text-center">
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 flex items-center justify-center relative group tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-black mb-4 flex items-center justify-center tracking-tighter text-card-foreground">
             {currentCard.front}
-            <Volume2 
-              className="w-6 h-6 ml-3 text-muted group-hover:text-primary transition-colors hover:scale-110 cursor-pointer" 
+            <button 
+              className="ml-4 p-2 rounded-full hover:bg-secondary transition-colors"
               onClick={(e) => { e.stopPropagation(); readText(currentCard.front); }}
-            />
+            >
+              <Volume2 className="w-6 h-6 text-muted-foreground/60 hover:text-primary transition-colors" />
+            </button>
           </h1>
           
           {showAnswer && (
-            <div className="w-full max-w-full transform transition-all duration-300 ease-out translate-y-0 opacity-100 mt-6 border-t border-border/50 pt-8 text-left text-base md:text-lg text-card-foreground leading-relaxed">
-              {(currentCard.example || currentCard.definition) ? (
-                <div className="flex flex-col text-left w-full">
-                  {/* Top Metadata row */}
-                  <div className="flex flex-wrap items-center gap-2 mb-6">
-                    {currentCard.partOfSpeech && (
-                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold uppercase border border-primary/20">
-                        {currentCard.partOfSpeech}
-                      </span>
-                    )}
-                    {currentCard.contextType && (
-                      <span className="bg-accent/10 text-accent px-2 py-0.5 rounded-full text-xs font-bold uppercase border border-accent/20">
-                        {currentCard.contextType}
-                      </span>
-                    )}
-                    {currentCard.phonetic && currentCard.phonetic !== '無' && (
-                      <span className="font-mono text-muted-foreground text-sm font-medium tracking-tight ml-1">
-                        {currentCard.phonetic}
-                      </span>
-                    )}
+            <div className="w-full max-w-2xl mt-8 pt-8 border-t border-border/40 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+              {/* Header Metadata */}
+              <div className="flex flex-wrap items-center gap-3 mb-8">
+                {currentCard.partOfSpeech && (
+                  <span className="text-xs font-black italic text-primary/70">{currentCard.partOfSpeech}</span>
+                )}
+                {currentCard.phonetic && (
+                  <span className="font-mono text-sm text-muted-foreground/80 tracking-tight">{currentCard.phonetic}</span>
+                )}
+                {currentCard.contextType && (
+                  <span className="bg-primary/5 text-primary/60 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border border-primary/10">
+                    {currentCard.contextType}
+                  </span>
+                )}
+              </div>
+
+              {/* Definition */}
+              <div className="text-2xl md:text-3xl font-bold text-card-foreground mb-10 leading-tight">
+                {currentCard.definition}
+              </div>
+
+              {/* Morphology / Inflections */}
+              {currentCard.morphology && (
+                <div className="mb-10 group">
+                  <div className="flex items-center gap-2 mb-2 text-muted-foreground/40 group-hover:text-primary/50 transition-colors">
+                    <Hash className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Inflections</span>
                   </div>
-
-                  {currentCard.definition && (
-                    <div className="font-bold text-xl md:text-2xl text-card-foreground mb-6 leading-snug">
-                      {currentCard.definition}
-                    </div>
-                  )}
-
-                  {currentCard.morphology && (
-                    <div className="text-sm text-muted-foreground mb-6 flex items-start gap-2 bg-secondary/30 p-2.5 rounded-xl border border-border/40">
-                      <div className="mt-0.5 opacity-70"><Hash className="w-4 h-4"/></div>
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">Inflections</span>
-                        <span className="italic font-medium">{currentCard.morphology}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentCard.example && (
-                    <div className="text-card-foreground/90 italic border-l-3 border-primary/40 pl-5 py-1 mb-8 text-lg md:text-xl leading-relaxed">
-                      {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
-                    </div>
-                  )}
-
-                  {/* Supplemental Info Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                    {currentCard.collocations && currentCard.collocations !== '無' && (
-                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-secondary/20 border border-border/30">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Collocations</span>
-                        <span className="text-sm font-semibold text-foreground/80 leading-relaxed">
-                          {currentCard.collocations}
-                        </span>
-                      </div>
-                    )}
-                    {currentCard.derivatives && (
-                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-secondary/20 border border-border/30">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Derivatives</span>
-                        <span className="text-sm font-semibold text-accent/80 leading-relaxed">
-                          {highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
-                        </span>
-                      </div>
-                    )}
+                  <div className="text-base font-medium italic text-card-foreground/80 pl-5 border-l border-border/30">
+                    {currentCard.morphology}
                   </div>
                 </div>
-              ) : (
-                currentCard.back.split('\n').map((line, i) => {
-                  const trimmed = line.trim();
-                  let className = "mb-3 last:mb-0";
-                  
-                  // Styling heuristics
-                  if (trimmed.startsWith('音標：') || trimmed.startsWith('音标：')) {
-                    className = "font-mono text-accent text-sm md:text-base font-bold mb-4 tracking-wide";
-                  } else if (trimmed.startsWith('意思：')) {
-                    className = "font-bold text-lg md:text-xl text-primary mb-4";
-                  } else if (trimmed.startsWith('例句：')) {
-                    className = "text-muted italic border-l-2 border-border pl-3 mb-4";
-                  } else if (trimmed.startsWith('搭配：')) {
-                    className = "font-medium text-foreground bg-secondary/50 p-2 rounded-md inline-block mb-3";
-                  }
-
-                  return (
-                    <div key={i} className={className}>
-                      {trimmed.replace(/^(音標：|音标：|意思：|例句：|搭配：)/, '')}
-                    </div>
-                  );
-                })
               )}
+
+              {/* Example */}
+              {currentCard.example && (
+                <div className="mb-12 group">
+                  <div className="flex items-center gap-2 mb-3 text-muted-foreground/40 group-hover:text-primary/50 transition-colors">
+                    <Quote className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Example</span>
+                  </div>
+                  <div className="text-xl md:text-2xl leading-relaxed text-card-foreground/90 font-medium pl-5 border-l-2 border-primary/30">
+                    {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom Grid for Secondary Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 pt-8 border-t border-border/20">
+                {currentCard.collocations && (
+                  <div className="group">
+                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/40 group-hover:text-primary/50 transition-colors">
+                      <Layers className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Collocations</span>
+                    </div>
+                    <div className="text-sm font-bold text-card-foreground/70 leading-relaxed">
+                      {currentCard.collocations}
+                    </div>
+                  </div>
+                )}
+                {currentCard.derivatives && (
+                  <div className="group">
+                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/40 group-hover:text-accent/50 transition-colors">
+                      <Link2 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Derivatives</span>
+                    </div>
+                    <div className="text-sm font-bold text-accent/70 leading-relaxed">
+                      {highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
         {!showAnswer && (
-          <div className="absolute bottom-6 left-0 right-0 text-center text-muted text-sm font-medium animate-pulse">
-            點擊卡片或按 Space 鍵顯示答案
+          <div className="absolute bottom-10 left-0 right-0 text-center text-muted-foreground/30 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
+            Press Space to reveal
           </div>
         )}
       </div>
 
       {showAnswer ? (
-        <div className="grid grid-cols-4 gap-2 md:gap-4 mt-6">
-          <button className="flex flex-col items-center justify-center py-3 px-2 md:py-4 bg-card rounded-xl border border-danger hover:bg-danger/10 text-danger transition-colors font-bold shadow-sm" onClick={() => handleRate('again', 1)}>
-            <span className="text-sm md:text-lg">重學</span>
-            <span className="text-xs font-normal opacity-70 mt-1 md:mt-2 hidden md:block">Press 1</span>
+        <div className="grid grid-cols-4 gap-3 md:gap-6 mt-8">
+          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-danger/30 hover:bg-danger/5 text-danger transition-all active:scale-95 shadow-sm" onClick={() => handleRate('again', 1)}>
+            <span className="text-xs font-black uppercase tracking-widest">Again</span>
           </button>
-          <button className="flex flex-col items-center justify-center py-3 px-2 md:py-4 bg-card rounded-xl border border-warning hover:bg-warning/10 text-warning transition-colors font-bold shadow-sm" onClick={() => handleRate('hard', 2)}>
-            <span className="text-sm md:text-lg">困難</span>
-            <span className="text-xs font-normal opacity-70 mt-1 md:mt-2 hidden md:block">Press 2</span>
+          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-warning/30 hover:bg-warning/5 text-warning transition-all active:scale-95 shadow-sm" onClick={() => handleRate('hard', 2)}>
+            <span className="text-xs font-black uppercase tracking-widest">Hard</span>
           </button>
-          <button className="flex flex-col items-center justify-center py-3 px-2 md:py-4 bg-card rounded-xl border border-success hover:bg-success/10 text-success transition-colors font-bold shadow-sm" onClick={() => handleRate('good', 3)}>
-            <span className="text-sm md:text-lg">良好</span>
-            <span className="text-xs font-normal opacity-70 mt-1 md:mt-2 hidden md:block">Press 3</span>
+          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-success/30 hover:bg-success/5 text-success transition-all active:scale-95 shadow-sm" onClick={() => handleRate('good', 3)}>
+            <span className="text-xs font-black uppercase tracking-widest">Good</span>
           </button>
-          <button className="flex flex-col items-center justify-center py-3 px-2 md:py-4 bg-card rounded-xl border border-blue-500 hover:bg-blue-500/10 text-blue-500 transition-colors font-bold shadow-sm" onClick={() => handleRate('easy', 4)}>
-            <span className="text-sm md:text-lg">輕鬆</span>
-            <span className="text-xs font-normal opacity-70 mt-1 md:mt-2 hidden md:block">Press 4</span>
+          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-blue-500/30 hover:bg-blue-500/5 text-blue-500 transition-all active:scale-95 shadow-sm" onClick={() => handleRate('easy', 4)}>
+            <span className="text-xs font-black uppercase tracking-widest">Easy</span>
           </button>
         </div>
       ) : (
-        <div className="h-[76px] mt-6 md:h-[92px]"></div>
+        <div className="h-[84px] mt-8"></div>
       )}
     </div>
   );
