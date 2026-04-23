@@ -32,36 +32,37 @@ export function parseCSV(file: File, deckId: string, groupName: string): Promise
           }
           
           const front = row[0].trim();
-          let morphology, derivatives, phonetic, partOfSpeech, definition, example, collocations, contextType;
+          let morphology = '', derivatives = '', phonetic = '', partOfSpeech = '', definition = '', example = '', collocations = '', contextType = '', back = '';
           
           if (row.length >= 9) {
-            // New 9-column format matched with academic generator v3 output:
-            // Word(0), IPA(1), POS(2), Inflections(3), Derivatives(4), Definition(5), Example(6), Collocations(7), Context_Type(8)
-            phonetic = row[1]?.trim();
-            partOfSpeech = row[2]?.trim();
-            morphology = row[3]?.trim();
-            derivatives = row[4]?.trim();
-            definition = row[5]?.trim();
-            example = row[6]?.trim();
-            collocations = row[7]?.trim();
-            contextType = row[8]?.trim();
+            // New 9-column format
+            phonetic = row[1]?.trim() || '';
+            partOfSpeech = row[2]?.trim() || '';
+            morphology = row[3]?.trim() || '';
+            derivatives = row[4]?.trim() || '';
+            definition = row[5]?.trim() || '';
+            example = row[6]?.trim() || '';
+            collocations = row[7]?.trim() || '';
+            contextType = row[8]?.trim() || '';
             
             if (!front || (!definition && !example)) {
               skippedCount++;
               if (errors.length < 3) errors.push(`第 ${i + 1} 行: 單字或解釋/例句不可為空`);
               continue;
             }
+            back = definition + "\n" + example;
           } else if (row.length >= 8) {
             // Legacy 8-column support
-            phonetic = row[1]?.trim();
-            partOfSpeech = row[2]?.trim();
-            morphology = row[3]?.trim();
-            definition = row[4]?.trim();
-            example = row[5]?.trim();
-            collocations = row[6]?.trim();
-            contextType = row[7]?.trim();
+            phonetic = row[1]?.trim() || '';
+            partOfSpeech = row[2]?.trim() || '';
+            morphology = row[3]?.trim() || '';
+            definition = row[4]?.trim() || '';
+            example = row[5]?.trim() || '';
+            collocations = row[6]?.trim() || '';
+            contextType = row[7]?.trim() || '';
+            back = definition + "\n" + example;
           } else {
-            // Legacy 2-column fallback (potentially more if commas exist but not 8 columns)
+            // Legacy 2-column fallback
             back = row.slice(1).join('\n').trim();
             if (!front || !back) {
               skippedCount++;
@@ -89,6 +90,7 @@ export function parseCSV(file: File, deckId: string, groupName: string): Promise
             front,
             back,
             morphology,
+            derivatives,
             phonetic,
             partOfSpeech,
             definition,
