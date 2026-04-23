@@ -77,7 +77,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     }
     
     utterance.lang = 'en-US';
-    utterance.rate = 0.95;
+    utterance.rate = 0.8;
     utterance.pitch = 1.0;
     
     utterance.onerror = (event) => {
