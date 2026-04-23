@@ -1,33 +1,23 @@
-# WordForge - Vocabulary
+# WordForge - 高品質英語單字學習系統
 
 ## 功能介紹
-WordForge 是一款專為高品質單字學習設計的 SRS (間隔重複) 系統。本系統支援從 CSV 檔案匯入單字卡，並具備以下特色：
-- **學術與生活雙軌語境**：自動識別單字屬性，提供最貼切的例句（托福講座/閱讀 vs 道地生活對話）。
-- **結構化 8 欄位資料**：提供音標、時態變化、詞性、解釋、例句與搭配詞。
-- **美式道地語言**：例句嚴格排除 AI 體，並正確套用縮寫（Contractions）。
-- **離線學習**：基於瀏覽器的 LocalStorage，隨時隨地複習。
+WordForge 是一個專為進階英語學習者設計的單字卡系統。它結合了真實世界語料（YouTube 訪談、科技評論）與 AI 教材化加工，提供最道地的語感練習。
+- **真實語料驅動**：例句取材自 Lex Fridman, Jensen Huang 等專業人士的訪談。
+- **視覺同步高亮**：自動識別例句中的單字變體並進行顏色標記。
+- **完整詞彙屬性**：展示 IPA 音標、屈折變化 (Inflections)、衍生詞與語境標籤。
+- **離線學習**：支援高品質 CSV 匯入與本地 SRS 複習。
 
 ## 安裝步驟
-1. 複製本倉庫至本地：
-   ```bash
-   git clone https://github.com/Shuai-chi/wordcards.git
-   ```
-2. 安裝依賴套件：
-   ```bash
-   npm install
-   ```
-3. 啟動開發伺服器：
-   ```bash
-   npm run dev
-   ```
+1. 複製本專案至本地環境。
+2. 執行 `npm install` 安裝相依套件。
+3. 執行 `npm run dev` 啟動開發伺服器。
 
 ## 使用方法
-1. **產出單字卡**：參考 `prompts/` 目錄下的提示詞規範，利用 AI 生成 8 欄位 CSV。
-2. **匯入 CSV**：在 Dashboard 點擊「匯入」，選擇您的 CSV 檔案。
-3. **開始學習**：系統會自動根據 SRS 演算法排程複習任務。
+1. 使用後端 `srs-generator` 產出符合 v9.0 標準的 CSV 檔案。
+2. 在網頁介面點擊「匯入」，選擇產出的 CSV。
+3. 系統將自動解析標題列，並開始顯示單字卡。
 
 ## 技術棧
-- **Frontend**: React (TypeScript), Tailwind CSS
-- **Icons**: Lucide React
-- **CSV Parsing**: PapaParse
-- **State Management**: React Hooks + LocalStorage
+- **Frontend**: React (TypeScript), Vite, TailwindCSS.
+- **Icons**: Lucide-React.
+- **Data**: PapaParse (CSV Processing), IndexedDB (Local Storage).

@@ -186,9 +186,20 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
                       {currentCard.partOfSpeech ? `[${currentCard.partOfSpeech}] ` : ''}{currentCard.definition}
                     </div>
                   )}
+                  {currentCard.morphology && (
+                    <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
+                      <span className="bg-secondary px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Inflections</span>
+                      <span className="italic">{currentCard.morphology}</span>
+                    </div>
+                  )}
                   {currentCard.example && (
                     <div className="text-muted italic border-l-2 border-border pl-3 mb-4">
                       {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
+                    </div>
+                  )}
+                  {currentCard.derivatives && (
+                    <div className="text-sm text-accent mb-4 italic">
+                      衍生詞：{highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
                     </div>
                   )}
                   {currentCard.collocations && currentCard.collocations !== '無' && (

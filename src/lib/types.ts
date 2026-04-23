@@ -22,6 +22,7 @@ export interface Card {
   front: string;
   back: string;
   morphology?: string;
+  derivatives?: string;
   phonetic?: string;
   partOfSpeech?: string;
   definition?: string;
