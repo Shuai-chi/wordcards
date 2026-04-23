@@ -228,10 +228,16 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
 
               {/* Example */}
               {currentCard.example && (
-                <div className="mb-8">
-                  <div className="flex items-center gap-1.5 mb-2 text-muted-foreground/50">
+                <div className="mb-8 group">
+                  <div className="flex items-center gap-2 mb-3 text-muted-foreground/50">
                     <Quote className="w-3 h-3" />
                     <span className="text-[9px] font-black uppercase tracking-wider">Example</span>
+                    <button 
+                      className="p-1 rounded-md hover:bg-secondary transition-colors"
+                      onClick={(e) => { e.stopPropagation(); readText(currentCard.example || ''); }}
+                    >
+                      <Volume2 className="w-3.5 h-3.5 text-muted-foreground/40 hover:text-primary transition-colors" />
+                    </button>
                   </div>
                   <div className="text-base md:text-xl leading-relaxed text-card-foreground/90 font-medium pl-4 border-l-2 border-primary/30">
                     {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
