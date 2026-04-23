@@ -60,36 +60,40 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
   const readText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     setAudioError(false);
-    
-    // Cancel previous speech to prevent overlapping or deadlocks
+
+    // 1. Cancel any ongoing speech
     window.speechSynthesis.cancel();
-    
-    // Increased delay to 200ms to allow audio hardware to fully initialize
+
+    // 2. Immediate "Wake up" utterance (Silent)
+    // This forces the OS audio pipeline to open on desktop browsers
+    const wakeUp = new SpeechSynthesisUtterance("");
+    wakeUp.volume = 0;
+    window.speechSynthesis.speak(wakeUp);
+
+    // 3. Main utterance after a safer delay (500ms for desktop hardware wake-up)
     setTimeout(() => {
-      // Multiple dots create a more reliable "warm-up" period for the audio stream
       const utterance = new SpeechSynthesisUtterance(". . . " + text);
-      
+
       const voices = window.speechSynthesis.getVoices();
       const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
                      voices.find(v => v.lang.startsWith('en')) ||
                      voices[0];
-      
-      if (enVoice) {
-        utterance.voice = enVoice;
-      }
-      
+
+      if (enVoice) utterance.voice = enVoice;
+
       utterance.lang = 'en-US';
       utterance.rate = 0.8;
       utterance.pitch = 1.0;
-      
+
       utterance.onerror = (event) => {
         console.error("TTS Error Detail:", event);
         setAudioError(true);
       };
-      
+
       window.speechSynthesis.speak(utterance);
-    }, 50); // 50ms delay is usually enough
+    }, 500); 
   };
+
 
   useEffect(() => {
     if (currentCard && !showAnswer) {
