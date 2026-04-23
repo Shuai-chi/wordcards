@@ -53,29 +53,43 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     }
   }, [queue, currentCard]);
 
+  // Optimized Audio Engine
   const readText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     setAudioError(false);
     window.speechSynthesis.cancel();
     
-    const wakeUp = new SpeechSynthesisUtterance("");
-    wakeUp.volume = 0;
-    window.speechSynthesis.speak(wakeUp);
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(". . . " + text);
+    if (isMobile) {
+      const utterance = new SpeechSynthesisUtterance(text);
       const voices = window.speechSynthesis.getVoices();
       const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
                      voices.find(v => v.lang.startsWith('en')) ||
                      voices[0];
-      
       if (enVoice) utterance.voice = enVoice;
       utterance.lang = 'en-US';
       utterance.rate = 0.8;
-      utterance.pitch = 1.0;
-      utterance.onerror = () => setAudioError(true);
       window.speechSynthesis.speak(utterance);
-    }, 500); 
+    } else {
+      // Desktop Hardware Wake-up logic
+      const wakeUp = new SpeechSynthesisUtterance("");
+      wakeUp.volume = 0;
+      window.speechSynthesis.speak(wakeUp);
+      
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(" " + text);
+        const voices = window.speechSynthesis.getVoices();
+        const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
+                       voices.find(v => v.lang.startsWith('en')) ||
+                       voices[0];
+        if (enVoice) utterance.voice = enVoice;
+        utterance.lang = 'en-US';
+        utterance.rate = 0.8;
+        utterance.onerror = () => setAudioError(true);
+        window.speechSynthesis.speak(utterance);
+      }, 500); 
+    }
   };
 
   useEffect(() => {
@@ -194,7 +208,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
                 )}
               </div>
 
-              {/* Definition - Reduced size as requested */}
+              {/* Definition */}
               <div className="text-lg md:text-2xl font-bold text-card-foreground mb-6 leading-tight">
                 {currentCard.definition}
               </div>
@@ -212,7 +226,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
                 </div>
               )}
 
-              {/* Example - Fixed data mapping */}
+              {/* Example */}
               {currentCard.example && (
                 <div className="mb-8">
                   <div className="flex items-center gap-1.5 mb-2 text-muted-foreground/50">
