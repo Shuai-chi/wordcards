@@ -60,15 +60,32 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
   const readText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     setAudioError(false);
+    
+    // Cancel previous speech to prevent overlapping or deadlocks
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'en-US';
-    u.rate = 0.9;
-    u.onerror = (e) => {
-      console.warn("TTS Error:", e);
+    
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Select the best available English voice
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
+                   voices.find(v => v.lang.startsWith('en')) ||
+                   voices[0];
+    
+    if (enVoice) {
+      utterance.voice = enVoice;
+    }
+    
+    utterance.lang = 'en-US';
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    
+    utterance.onerror = (event) => {
+      console.error("TTS Error Detail:", event);
       setAudioError(true);
     };
-    window.speechSynthesis.speak(u);
+    
+    window.speechSynthesis.speak(utterance);
   };
 
   useEffect(() => {
