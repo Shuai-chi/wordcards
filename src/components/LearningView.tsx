@@ -64,11 +64,10 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     // Cancel previous speech to prevent overlapping or deadlocks
     window.speechSynthesis.cancel();
     
-    // Tiny delay to ensure previous speech is fully cancelled
+    // Increased delay to 200ms to allow audio hardware to fully initialize
     setTimeout(() => {
-      // Add a leading comma or space to give the engine time to "warm up" 
-      // and prevent front-clipping of short words.
-      const utterance = new SpeechSynthesisUtterance(", " + text);
+      // Multiple dots create a more reliable "warm-up" period for the audio stream
+      const utterance = new SpeechSynthesisUtterance(". . . " + text);
       
       const voices = window.speechSynthesis.getVoices();
       const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
