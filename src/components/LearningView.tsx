@@ -150,101 +150,101 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
           <span>Remaining: {queue.length}</span>
           <span>Progress: {Math.round(progress)}%</span>
         </div>
-        <div className="w-full bg-secondary/50 h-1.5 rounded-full overflow-hidden">
-          <div className="bg-primary h-full transition-all duration-500 ease-in-out" style={{ width: `${progress}%` }}></div>
+        <div className="w-full bg-secondary/50 h-1 rounded-full overflow-hidden">
+          <div className="bg-primary h-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
         </div>
       </div>
 
       <div 
-        className="flex-1 bg-card border border-border/60 shadow-xl rounded-3xl p-6 md:p-12 flex flex-col overflow-y-auto relative transition-all duration-300"
+        className="flex-1 bg-card border border-border/60 shadow-lg rounded-3xl p-6 md:p-12 flex flex-col overflow-y-auto relative"
         onClick={() => !showAnswer && setShowAnswer(true)}
       >
-        {audioError && <div className="absolute top-6 right-6 text-[10px] text-danger font-bold uppercase tracking-tighter">Audio Error</div>}
-        <div className="absolute top-6 left-6 flex gap-2">
-           <span className="bg-secondary/60 text-muted-foreground text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-widest border border-border/20">
+        {audioError && <div className="absolute top-4 right-6 text-[10px] text-danger font-bold uppercase">Audio Error</div>}
+        <div className="absolute top-4 left-6">
+           <span className="bg-secondary/60 text-muted-foreground text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest border border-border/20">
             {currentCard.state === 'graduated' ? 'Mastered' : 'Learning'}
           </span>
         </div>
         
         <div className="flex-1 flex flex-col justify-center items-center text-center">
-          <h1 className="text-5xl md:text-7xl font-black mb-4 flex items-center justify-center tracking-tighter text-card-foreground">
+          <h1 className="text-3xl md:text-6xl font-black mb-4 flex items-center justify-center tracking-tight text-card-foreground break-all">
             {currentCard.front}
             <button 
-              className="ml-4 p-2 rounded-full hover:bg-secondary transition-colors"
+              className="ml-3 p-1.5 rounded-full hover:bg-secondary transition-colors"
               onClick={(e) => { e.stopPropagation(); readText(currentCard.front); }}
             >
-              <Volume2 className="w-6 h-6 text-muted-foreground/60 hover:text-primary transition-colors" />
+              <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground/60" />
             </button>
           </h1>
           
           {showAnswer && (
-            <div className="w-full max-w-2xl mt-8 pt-8 border-t border-border/40 text-left animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-full max-w-2xl mt-4 md:mt-8 pt-6 md:pt-8 border-t border-border/40 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
               {/* Header Metadata */}
-              <div className="flex flex-wrap items-center gap-3 mb-8">
+              <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-6">
                 {currentCard.partOfSpeech && (
-                  <span className="text-xs font-black italic text-primary/70">{currentCard.partOfSpeech}</span>
+                  <span className="text-xs font-black italic text-primary/80">{currentCard.partOfSpeech}</span>
                 )}
                 {currentCard.phonetic && (
-                  <span className="font-mono text-sm text-muted-foreground/80 tracking-tight">{currentCard.phonetic}</span>
+                  <span className="font-mono text-xs md:text-sm text-muted-foreground tracking-tight">{currentCard.phonetic}</span>
                 )}
                 {currentCard.contextType && (
-                  <span className="bg-primary/5 text-primary/60 px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border border-primary/10">
+                  <span className="bg-primary/5 text-primary/60 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border border-primary/10">
                     {currentCard.contextType}
                   </span>
                 )}
               </div>
 
-              {/* Definition */}
-              <div className="text-2xl md:text-3xl font-bold text-card-foreground mb-10 leading-tight">
+              {/* Definition - Reduced size as requested */}
+              <div className="text-lg md:text-2xl font-bold text-card-foreground mb-6 leading-tight">
                 {currentCard.definition}
               </div>
 
               {/* Morphology / Inflections */}
               {currentCard.morphology && (
-                <div className="mb-10 group">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground/40 group-hover:text-primary/50 transition-colors">
-                    <Hash className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Inflections</span>
+                <div className="mb-6">
+                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/50">
+                    <Hash className="w-3 h-3" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">Inflections</span>
                   </div>
-                  <div className="text-base font-medium italic text-card-foreground/80 pl-5 border-l border-border/30">
+                  <div className="text-sm md:text-base font-medium italic text-card-foreground/70 pl-4 border-l border-border/30">
                     {currentCard.morphology}
                   </div>
                 </div>
               )}
 
-              {/* Example */}
+              {/* Example - Fixed data mapping */}
               {currentCard.example && (
-                <div className="mb-12 group">
-                  <div className="flex items-center gap-2 mb-3 text-muted-foreground/40 group-hover:text-primary/50 transition-colors">
-                    <Quote className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Example</span>
+                <div className="mb-8">
+                  <div className="flex items-center gap-1.5 mb-2 text-muted-foreground/50">
+                    <Quote className="w-3 h-3" />
+                    <span className="text-[9px] font-black uppercase tracking-wider">Example</span>
                   </div>
-                  <div className="text-xl md:text-2xl leading-relaxed text-card-foreground/90 font-medium pl-5 border-l-2 border-primary/30">
+                  <div className="text-base md:text-xl leading-relaxed text-card-foreground/90 font-medium pl-4 border-l-2 border-primary/30">
                     {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
                   </div>
                 </div>
               )}
 
               {/* Bottom Grid for Secondary Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 pt-8 border-t border-border/20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-6 pt-6 border-t border-border/20">
                 {currentCard.collocations && (
-                  <div className="group">
-                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/40 group-hover:text-primary/50 transition-colors">
-                      <Layers className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Collocations</span>
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/50">
+                      <Layers className="w-3 h-3" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">Collocations</span>
                     </div>
-                    <div className="text-sm font-bold text-card-foreground/70 leading-relaxed">
+                    <div className="text-xs md:text-sm font-bold text-card-foreground/70 leading-relaxed">
                       {currentCard.collocations}
                     </div>
                   </div>
                 )}
                 {currentCard.derivatives && (
-                  <div className="group">
-                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/40 group-hover:text-accent/50 transition-colors">
-                      <Link2 className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Derivatives</span>
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/50">
+                      <Link2 className="w-3 h-3" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">Derivatives</span>
                     </div>
-                    <div className="text-sm font-bold text-accent/70 leading-relaxed">
+                    <div className="text-xs md:text-sm font-bold text-accent/70 leading-relaxed">
                       {highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
                     </div>
                   </div>
@@ -254,29 +254,21 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
           )}
         </div>
         {!showAnswer && (
-          <div className="absolute bottom-10 left-0 right-0 text-center text-muted-foreground/30 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">
-            Press Space to reveal
+          <div className="absolute bottom-6 left-0 right-0 text-center text-muted-foreground/30 text-[9px] font-black uppercase tracking-[0.2em]">
+            Click or Press Space
           </div>
         )}
       </div>
 
       {showAnswer ? (
-        <div className="grid grid-cols-4 gap-3 md:gap-6 mt-8">
-          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-danger/30 hover:bg-danger/5 text-danger transition-all active:scale-95 shadow-sm" onClick={() => handleRate('again', 1)}>
-            <span className="text-xs font-black uppercase tracking-widest">Again</span>
-          </button>
-          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-warning/30 hover:bg-warning/5 text-warning transition-all active:scale-95 shadow-sm" onClick={() => handleRate('hard', 2)}>
-            <span className="text-xs font-black uppercase tracking-widest">Hard</span>
-          </button>
-          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-success/30 hover:bg-success/5 text-success transition-all active:scale-95 shadow-sm" onClick={() => handleRate('good', 3)}>
-            <span className="text-xs font-black uppercase tracking-widest">Good</span>
-          </button>
-          <button className="flex flex-col items-center justify-center py-4 px-2 bg-card rounded-2xl border border-blue-500/30 hover:bg-blue-500/5 text-blue-500 transition-all active:scale-95 shadow-sm" onClick={() => handleRate('easy', 4)}>
-            <span className="text-xs font-black uppercase tracking-widest">Easy</span>
-          </button>
+        <div className="grid grid-cols-4 gap-2 md:gap-6 mt-4 md:mt-8">
+          <button className="py-3 bg-card rounded-2xl border border-danger/30 text-danger text-[10px] font-black uppercase tracking-wider" onClick={() => handleRate('again', 1)}>Again</button>
+          <button className="py-3 bg-card rounded-2xl border border-warning/30 text-warning text-[10px] font-black uppercase tracking-wider" onClick={() => handleRate('hard', 2)}>Hard</button>
+          <button className="py-3 bg-card rounded-2xl border border-success/30 text-success text-[10px] font-black uppercase tracking-wider" onClick={() => handleRate('good', 3)}>Good</button>
+          <button className="py-3 bg-card rounded-2xl border border-blue-500/30 text-blue-500 text-[10px] font-black uppercase tracking-wider" onClick={() => handleRate('easy', 4)}>Easy</button>
         </div>
       ) : (
-        <div className="h-[84px] mt-8"></div>
+        <div className="h-[52px] md:h-[84px] mt-4 md:mt-8"></div>
       )}
     </div>
   );
