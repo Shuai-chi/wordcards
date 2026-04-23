@@ -200,42 +200,66 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
             <div className="w-full max-w-full transform transition-all duration-300 ease-out translate-y-0 opacity-100 mt-6 border-t border-border/50 pt-8 text-left text-base md:text-lg text-card-foreground leading-relaxed">
               {(currentCard.example || currentCard.definition) ? (
                 <div className="flex flex-col text-left w-full">
-                  {currentCard.phonetic && currentCard.phonetic !== '無' && (
-                    <div className="font-mono text-accent text-sm md:text-base font-bold mb-4 tracking-wide">
-                      {currentCard.phonetic}
-                    </div>
-                  )}
+                  {/* Top Metadata row */}
+                  <div className="flex flex-wrap items-center gap-2 mb-6">
+                    {currentCard.partOfSpeech && (
+                      <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold uppercase border border-primary/20">
+                        {currentCard.partOfSpeech}
+                      </span>
+                    )}
+                    {currentCard.contextType && (
+                      <span className="bg-accent/10 text-accent px-2 py-0.5 rounded-full text-xs font-bold uppercase border border-accent/20">
+                        {currentCard.contextType}
+                      </span>
+                    )}
+                    {currentCard.phonetic && currentCard.phonetic !== '無' && (
+                      <span className="font-mono text-muted-foreground text-sm font-medium tracking-tight ml-1">
+                        {currentCard.phonetic}
+                      </span>
+                    )}
+                  </div>
+
                   {currentCard.definition && (
-                    <div className="font-bold text-lg md:text-xl text-primary mb-4">
-                      {currentCard.partOfSpeech ? `[${currentCard.partOfSpeech}] ` : ''}{currentCard.definition}
+                    <div className="font-bold text-xl md:text-2xl text-card-foreground mb-6 leading-snug">
+                      {currentCard.definition}
                     </div>
                   )}
+
                   {currentCard.morphology && (
-                    <div className="text-sm text-muted-foreground mb-4 flex items-center gap-2">
-                      <span className="bg-secondary px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">Inflections</span>
-                      <span className="italic">{currentCard.morphology}</span>
+                    <div className="text-sm text-muted-foreground mb-6 flex items-start gap-2 bg-secondary/30 p-2.5 rounded-xl border border-border/40">
+                      <div className="mt-0.5 opacity-70"><Hash className="w-4 h-4"/></div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 mb-0.5">Inflections</span>
+                        <span className="italic font-medium">{currentCard.morphology}</span>
+                      </div>
                     </div>
                   )}
+
                   {currentCard.example && (
-                    <div className="text-muted italic border-l-2 border-border pl-3 mb-4">
+                    <div className="text-card-foreground/90 italic border-l-3 border-primary/40 pl-5 py-1 mb-8 text-lg md:text-xl leading-relaxed">
                       {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
                     </div>
                   )}
-                  {currentCard.derivatives && (
-                    <div className="text-sm text-accent mb-4 italic">
-                      衍生詞：{highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
-                    </div>
-                  )}
-                  {currentCard.collocations && currentCard.collocations !== '無' && (
-                    <div className="font-medium text-foreground bg-secondary/50 p-2 rounded-md inline-block mb-3">
-                      {currentCard.collocations}
-                    </div>
-                  )}
-                  {currentCard.contextType && (
-                    <div className="text-xs text-muted/70 mt-2 flex justify-end">
-                      <span className="bg-secondary/80 px-2 py-1 rounded">標籤：{currentCard.contextType}</span>
-                    </div>
-                  )}
+
+                  {/* Supplemental Info Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                    {currentCard.collocations && currentCard.collocations !== '無' && (
+                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-secondary/20 border border-border/30">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Collocations</span>
+                        <span className="text-sm font-semibold text-foreground/80 leading-relaxed">
+                          {currentCard.collocations}
+                        </span>
+                      </div>
+                    )}
+                    {currentCard.derivatives && (
+                      <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-secondary/20 border border-border/30">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">Derivatives</span>
+                        <span className="text-sm font-semibold text-accent/80 leading-relaxed">
+                          {highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 currentCard.back.split('\n').map((line, i) => {
