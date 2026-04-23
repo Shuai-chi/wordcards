@@ -53,7 +53,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     }
   }, [queue, currentCard]);
 
-  // Optimized Audio Engine
+  // Audio Reading System v11.0 (Natural-Flow)
   const readText = (text: string) => {
     if (!('speechSynthesis' in window)) return;
     setAudioError(false);
@@ -61,34 +61,33 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
     
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    if (isMobile) {
-      const utterance = new SpeechSynthesisUtterance(text);
+    const executeSpeak = () => {
+      const utterance = new SpeechSynthesisUtterance(isMobile ? text : " " + text);
       const voices = window.speechSynthesis.getVoices();
-      const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
-                     voices.find(v => v.lang.startsWith('en')) ||
-                     voices[0];
-      if (enVoice) utterance.voice = enVoice;
+      
+      // High-quality voice ranking
+      const preferredVoice = 
+        voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural')) ||
+        voices.find(v => v.lang.startsWith('en') && v.name.includes('Online')) ||
+        voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) ||
+        voices.find(v => v.lang.startsWith('en'));
+      
+      if (preferredVoice) utterance.voice = preferredVoice;
       utterance.lang = 'en-US';
-      utterance.rate = 0.8;
+      utterance.rate = 0.85; // Optimized for natural cadence
+      utterance.pitch = 1.0;
+      utterance.onerror = () => setAudioError(true);
       window.speechSynthesis.speak(utterance);
+    };
+
+    if (isMobile) {
+      executeSpeak();
     } else {
-      // Desktop Hardware Wake-up logic
+      // Wake up hardware with silent beat
       const wakeUp = new SpeechSynthesisUtterance("");
       wakeUp.volume = 0;
       window.speechSynthesis.speak(wakeUp);
-      
-      setTimeout(() => {
-        const utterance = new SpeechSynthesisUtterance(" " + text);
-        const voices = window.speechSynthesis.getVoices();
-        const enVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
-                       voices.find(v => v.lang.startsWith('en')) ||
-                       voices[0];
-        if (enVoice) utterance.voice = enVoice;
-        utterance.lang = 'en-US';
-        utterance.rate = 0.8;
-        utterance.onerror = () => setAudioError(true);
-        window.speechSynthesis.speak(utterance);
-      }, 500); 
+      setTimeout(executeSpeak, 500); 
     }
   };
 
