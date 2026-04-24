@@ -183,43 +183,47 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
           <h1 className="text-3xl md:text-6xl font-black mb-4 flex items-center justify-center tracking-tight text-card-foreground break-all">
             {currentCard.front}
             <button 
-              className="ml-3 p-1.5 rounded-full hover:bg-secondary transition-colors"
+              className="ml-4 p-2 rounded-full hover:bg-secondary transition-all hover:scale-110 active:scale-95"
               onClick={(e) => { e.stopPropagation(); readText(currentCard.front); }}
             >
-              <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground/60" />
+              <Volume2 className="w-7 h-7 md:w-9 h-9 text-muted-foreground/60 hover:text-primary transition-colors" />
             </button>
           </h1>
           
           {showAnswer && (
             <div className="w-full max-w-2xl mt-4 md:mt-8 pt-6 md:pt-8 border-t border-border/40 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
               {/* Header Metadata */}
-              <div className="flex flex-wrap items-center gap-2 mb-4 md:mb-6">
+              <div className="flex flex-wrap items-center gap-3 mb-6 md:mb-8">
                 {currentCard.partOfSpeech && (
-                  <span className="text-xs font-black italic text-primary/80">{currentCard.partOfSpeech}</span>
+                  <span className="px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-xs md:text-sm font-black text-primary/90">
+                    {currentCard.partOfSpeech}
+                  </span>
                 )}
                 {currentCard.phonetic && (
-                  <span className="font-mono text-xs md:text-sm text-muted-foreground tracking-tight">{currentCard.phonetic}</span>
+                  <span className="font-mono text-sm md:text-base text-muted-foreground font-bold tracking-tight">
+                    {currentCard.phonetic}
+                  </span>
                 )}
                 {currentCard.contextType && (
-                  <span className="bg-primary/5 text-primary/60 px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border border-primary/10">
+                  <span className="bg-secondary/60 text-muted-foreground px-2 py-0.5 rounded-md text-[10px] md:text-xs font-black uppercase tracking-widest border border-border/30">
                     {currentCard.contextType}
                   </span>
                 )}
               </div>
 
               {/* Definition */}
-              <div className="text-lg md:text-2xl font-bold text-card-foreground mb-6 leading-tight">
+              <div className="text-xl md:text-2xl font-bold text-card-foreground mb-8 leading-tight">
                 {currentCard.definition}
               </div>
 
               {/* Morphology / Inflections */}
               {currentCard.morphology && (
-                <div className="mb-6">
-                  <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/50">
-                    <Hash className="w-3 h-3" />
-                    <span className="text-[9px] font-black uppercase tracking-wider">Inflections</span>
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-2 text-muted-foreground/50">
+                    <Hash className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">Inflections</span>
                   </div>
-                  <div className="text-sm md:text-base font-medium italic text-card-foreground/70 pl-4 border-l border-border/30">
+                  <div className="text-base md:text-lg font-medium text-card-foreground/80 pl-4 border-l-2 border-border/20">
                     {currentCard.morphology}
                   </div>
                 </div>
@@ -227,43 +231,43 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
 
               {/* Example */}
               {currentCard.example && (
-                <div className="mb-8 group">
+                <div className="mb-10 group">
                   <div className="flex items-center gap-2 mb-3 text-muted-foreground/50">
-                    <Quote className="w-3 h-3" />
-                    <span className="text-[9px] font-black uppercase tracking-wider">Example</span>
+                    <Quote className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">Example</span>
                     <button 
-                      className="p-1 rounded-md hover:bg-secondary transition-colors"
+                      className="p-1.5 rounded-md hover:bg-secondary transition-all hover:scale-110 active:scale-95"
                       onClick={(e) => { e.stopPropagation(); readText(currentCard.example || ''); }}
                     >
-                      <Volume2 className="w-3.5 h-3.5 text-muted-foreground/40 hover:text-primary transition-colors" />
+                      <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground/40 hover:text-primary transition-colors" />
                     </button>
                   </div>
-                  <div className="text-base md:text-xl leading-relaxed text-card-foreground/90 font-medium pl-4 border-l-2 border-primary/30">
+                  <div className="text-lg md:text-xl leading-relaxed text-card-foreground/90 font-medium pl-4 border-l-2 border-primary/40">
                     {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
                   </div>
                 </div>
               )}
 
               {/* Bottom Grid for Secondary Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mt-6 pt-6 border-t border-border/20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 mt-8 pt-8 border-t border-border/20">
                 {currentCard.collocations && (
                   <div>
-                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/50">
-                      <Layers className="w-3 h-3" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">Collocations</span>
+                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/50">
+                      <Layers className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Collocations</span>
                     </div>
-                    <div className="text-xs md:text-sm font-bold text-card-foreground/70 leading-relaxed">
+                    <div className="text-sm md:text-base font-bold text-card-foreground/70 leading-relaxed">
                       {currentCard.collocations}
                     </div>
                   </div>
                 )}
                 {currentCard.derivatives && (
                   <div>
-                    <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/50">
-                      <Link2 className="w-3 h-3" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">Derivatives</span>
+                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/50">
+                      <Link2 className="w-3.5 h-3.5" />
+                      <span className="text-[10px] font-black uppercase tracking-wider">Derivatives</span>
                     </div>
-                    <div className="text-xs md:text-sm font-bold text-accent/70 leading-relaxed">
+                    <div className="text-sm md:text-base font-bold text-accent/70 leading-relaxed">
                       {highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
                     </div>
                   </div>

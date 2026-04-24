@@ -202,7 +202,7 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
     }
   };
 
-  const cAgain = report?.clicks?.again || 0;
+  const cHard = report?.clicks?.hard || 0;
   const cGood = report?.clicks?.good || 0;
   const cEasy = report?.clicks?.easy || 0;
 
@@ -216,9 +216,9 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
             {report?.uniqueCards || 0} <span className="text-sm font-normal text-muted mt-1">張</span>
           </div>
         </div>
-        <div className="card-container p-4 flex flex-col justify-center border-l-4 border-l-danger">
-          <div className="text-xs font-medium text-muted mb-1">重學 (Again)</div>
-          <div className="text-xl md:text-2xl font-bold text-danger">{cAgain}</div>
+        <div className="card-container p-4 flex flex-col justify-center border-l-4 border-l-warning">
+          <div className="text-xs font-medium text-muted mb-1">難 (Hard)</div>
+          <div className="text-xl md:text-2xl font-bold text-warning">{cHard}</div>
         </div>
         <div className="card-container p-4 flex flex-col justify-center border-l-4 border-l-success">
           <div className="text-xs font-medium text-muted mb-1">良好 (Good)</div>

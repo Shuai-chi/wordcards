@@ -1,63 +1,55 @@
-# WordForge SRS
+# WordForge - High-Quality English Flashcards 🚀
 
-A local-first Spaced Repetition System (SRS) client powered by the SM-2 algorithm, built with a modern React architecture.
+A minimalist flashcard system designed for advanced English learners. Features PWA support, custom CSV imports, and a precise SRS (Spaced Repetition System) mechanism.
 
-## Introduction
+## 📲 Access & Installation
 
-WordForge SRS is a digital flashcard tool designed for high-efficiency memorization. It utilizes the scientific SM-2 algorithm to dynamically adjust review intervals based on your forgetting curve.
+### 1. Web Version (Fastest)
+This is a pure frontend application. You can use it directly via the deployed URL.
+*   **Offline Support**: Once loaded, it works without an internet connection.
+*   **Data Privacy**: All flashcards and progress are stored locally in your browser's IndexedDB. No data is uploaded to any server.
 
-- **SM-2 Algorithm Engine**: Dynamically calculates spaced intervals based on interaction histories (`again` / `hard` / `good` / `easy`).
-- **Zero-Backend Architecture**: All CRUD operations resolve inside the browser storage (IndexedDB) without establishing backend communication.
-- **PWA Offline Mode**: Built-in Service Worker for asset caching, enabling stable operation in offline environments.
-- **Defensive Data Input**: Features a robust formatting validation system processing bulk CSV uploads without compromising stability.
-- **Dual Quota Control**: Global daily new card limits and individual deck quotas can be configured separately.
+### 2. Mobile Installation (PWA Recommended)
+For the best experience (full screen, smoother voice playback), it is highly recommended to install it as a **PWA**:
+*   **iOS (Safari)**: Tap the "Share" button -> Select **"Add to Home Screen"**.
+*   **Android (Chrome)**: Tap the menu icon -> Select **"Install App"**.
 
-## Installation
-
-For the best user experience (full-screen mode, faster startup), it is recommended to install this application as a **Web App (PWA)**.
-
-### 📲 PWA Installation Guide
-#### 🍎 iPhone / iPad (iOS)
-- **Safari Browser**: 
-    1. Tap the **"Share"** button 📤 at the bottom.
-    2. Scroll up and select **"Add to Home Screen"**.
-    3. Tap "Add" in the top right to complete the setup.
-#### 🤖 Android
-- **Google Chrome**:
-    1. Tap the three-dot menu **(⋮)** in the top right.
-    2. Select **"Install app"** or **"Add to Home screen"**.
-#### 💻 Desktop
-- **Chrome / Edge**: 
-    1. In the address bar, click the **"Install"** icon (monitor and arrow icon).
-    2. WordForge will open in a standalone window.
+### 3. Local Development
+1. `git clone https://github.com/your-repo/wordforge.git`
+2. `npm install`
+3. `npm run dev`
 
 ---
 
-### 🚀 Developer Setup (Optional)
-If you are a developer and wish to run this project locally:
-```bash
-npm install     # Install dependencies
-npm run dev     # Start development server
-npx playwright test # Run test suite
-```
+## 🛠️ User Guide
 
-## Usage
+### Step 1: Prepare & Import
+1.  **Generate Cards**: Follow the [Card Specifications & AI Prompts](./prompts/SPEC.md) to generate high-quality CSV files.
+2.  **Import**: Click the **"Upload"** icon on the home screen and select your CSV files.
 
-### 📤 How to Import Vocabulary
-WordForge is local-first. The import button is located in the top-right corner.
-![UI Guide](./public/docs/ui-guide.png)
-1. Prepare a CSV file in the format: `front text,back text`.
-2. Click the highlighted **"Import CSV"** button to upload.
+### Step 2: Settings
+1.  **Global Daily Limit**: Click "Settings" to set the maximum number of new cards across all decks per day.
+2.  **Per-Deck Limit**: You can set individual new card limits for each deck (e.g., 20 for Tech, 10 for Daily).
 
-### Core Interaction
-- **Selection Controls**: Added "Select All", "Deselect All", and "Invert Selection" for rapid study plan adjustments.
-- **Learning Queue**: Cards in 'Learning' state are retained until mastered, bypassing daily limits.
+### Step 3: Learning (SRS Mechanism)
+The system schedules the next review based on your feedback:
+*   **Again (1)**: Completely forgot. The card enters the re-learning phase and will reappear soon.
+*   **Hard (2)**: Known but slow recall. Shortens the next review interval.
+*   **Good (3)**: Clear recall. Uses standard interval growth.
+*   **Easy (4)**: Effortless recall. Significantly extends the next review interval.
 
-## Tech Stack
+### Step 4: Re-practice Today's Cards
+If you've finished your daily tasks but want to review more:
+*   The start button will change to **"Re-practice Today's Cards"**. This allows you to consolidate what you learned today without affecting the long-term SRS schedule.
 
-- **Architecture**: Single Page Application (SPA), Mobile-First UI
-- **Frontend**: React 19, TypeScript, Vite
-- **Styling**: Tailwind CSS v3, Lucide-React
-- **Storage**: IndexedDB (Native API wrapper)
-- **Data Parsing**: PapaParse (Client-side CSV parsing)
-- **CI/CD**: GitHub Actions, GitHub Pages
+---
+
+## 📂 Project Structure
+*   `src/components/`: UI components (Dashboard, LearningView).
+*   `src/lib/`: Core logic (SRS algorithm, DB operations).
+*   `prompts/`: AI prompts and CSV format specifications.
+
+---
+
+## 🛡️ Privacy
+WordForge is a **"Privacy-First"** tool. Your data never leaves your browser. Please remember to back up your data by exporting your CSVs regularly.
