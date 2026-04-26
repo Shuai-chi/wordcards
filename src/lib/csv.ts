@@ -30,8 +30,8 @@ export function parseCSV(file: File, deckId: string, groupName: string): Promise
           const front = row[0]?.trim();
           let phonetic = '', partOfSpeech = '', morphology = '', derivatives = '', definition = '', example = '', collocations = '', contextType = '';
 
-          // 嚴格對位邏輯 (根據 v7.0/v8.0/v9.0 標準 9 欄位)
-          // 0:word, 1:ipa, 2:pos, 3:infl, 4:der, 5:dfn, 6:ex, 7:coll, 8:ctx
+          // 嚴格對位邏輯 (根據 WordForge v10.0 標準 9 欄位)
+          // 0:word, 1:ipa, 2:pos (小寫帶點), 3:infl, 4:der, 5:dfn (全型分號), 6:ex, 7:coll, 8:ctx
           if (row.length >= 9) {
             phonetic = row[1]?.trim() || '';
             partOfSpeech = row[2]?.trim() || '';

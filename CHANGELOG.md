@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-25
+
+### [新增]
+- **WordForge v10.0 數據標準化**：支援「小寫帶點 + 空格分隔」的詞性格式。
+- **語境感知 UI**：卡片背面左上角新增「美化版語境標籤」（Academic / Tech, Campus Life, General / Daily）。
+- **紫色標籤引擎**：全面升級詞性標籤視覺效果，支援多詞性自動拆分渲染。
+
+### [優化]
+- **Academic 語言政策**：在 Academic / Tech 語境下強制執行「禁縮寫」規範，還原所有 `do not` 等完整形式。
+- **環境淨化**：優化 `.gitignore` 並清理測試緩存。
+
 ## [1.2.0] - 2026-04-23
 
 ### [新增]

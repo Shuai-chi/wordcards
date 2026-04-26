@@ -4,29 +4,57 @@ import { updateSRS } from '../lib/srs';
 import { DB, getTodayStr } from '../lib/db';
 import { Volume2, Hash, Layers, Quote, Link2 } from 'lucide-react';
 
-function highlightWord(text: string, front: string, morphology?: string) {
+function formatTagsInText(text: string, front: string, morphology?: string, mode: 'full' | 'tagsOnly' = 'full') {
   if (!text) return text;
   
-  const wordsToHighlight = [front];
-  if (morphology) {
-    const morphs = morphology.split(',').map(s => s.trim()).filter(Boolean);
-    wordsToHighlight.push(...morphs);
+  // 1. Prepare word highlighting only if mode is 'full'
+  let wordRegex: RegExp | null = null;
+  if (mode === 'full') {
+    const wordsToHighlight = [front];
+    if (morphology) {
+      const morphs = morphology.split(',').map(s => s.trim()).filter(Boolean);
+      wordsToHighlight.push(...morphs);
+    }
+    wordsToHighlight.sort((a, b) => b.length - a.length);
+    const escapedWords = wordsToHighlight.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    wordRegex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
   }
+
+  // 2. Identify POS tags - Flexible Regex to catch (n), (n.), (v), (v.), etc.
+  const parts = text.split(/(\((?:n|v|adj|adv|prep|conj|phr|phr|adj|adv|v|n)\.?\))/gi);
   
-  wordsToHighlight.sort((a, b) => b.length - a.length);
-  if (wordsToHighlight.length === 0 || !wordsToHighlight[0]) return <>{text}</>;
-  
-  const escapedWords = wordsToHighlight.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(`(${escapedWords.join('|')})`, 'gi');
-  
-  const parts = text.split(regex);
   return (
     <>
       {parts.map((part, i) => {
-        if (i % 2 === 1) { 
-          return <mark key={i} className="bg-yellow-500/80 dark:bg-yellow-400/70 text-black px-0.5 rounded font-semibold">{part}</mark>;
+        // Match (pos) or (pos.)
+        if (part.match(/^\((?:n|v|adj|adv|prep|conj|phr)\.?\)$/i)) {
+          const inner = part.replace(/[().]/g, ''); // Remove parens and dot for cleaner display
+          return (
+            <span key={i} className="mx-1 px-1.5 py-0.5 rounded-md bg-purple-100/80 border border-purple-200 text-[10px] md:text-xs font-black text-purple-700 align-middle uppercase tracking-tighter">
+              {inner}
+            </span>
+          );
         }
-        return <span key={i}>{part}</span>;
+        
+        if (mode === 'tagsOnly' || !wordRegex) {
+          return <span key={i}>{part}</span>;
+        }
+
+        const subParts = part.split(wordRegex);
+        return (
+          <span key={i}>
+            {subParts.map((sub, j) => {
+              if (wordRegex && wordRegex.test(sub)) {
+                return (
+                  <mark key={j} className="bg-transparent border-b-2 border-primary/30 text-primary font-bold px-0.5">
+                    {sub}
+                  </mark>
+                );
+              }
+              return sub;
+            })}
+          </span>
+        );
       })}
     </>
   );
@@ -174,9 +202,17 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
       >
         {audioError && <div className="absolute top-4 right-6 text-[10px] text-danger font-bold uppercase">Audio Error</div>}
         <div className="absolute top-4 left-6">
-           <span className="bg-secondary/60 text-muted-foreground text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest border border-border/20">
-            {currentCard.state === 'graduated' ? 'Mastered' : 'Learning'}
-          </span>
+          {!showAnswer ? (
+             <span className="bg-secondary/60 text-muted-foreground text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-widest border border-border/20">
+              {currentCard.state === 'graduated' ? 'Mastered' : 'Learning'}
+            </span>
+          ) : (
+            currentCard.contextType && (
+              <span className="bg-indigo-50 border border-indigo-200 text-indigo-600 text-xs md:text-sm px-3 py-1 rounded-lg font-bold uppercase tracking-widest shadow-sm">
+                {currentCard.contextType}
+              </span>
+            )
+          )}
         </div>
         
         <div className="flex-1 flex flex-col justify-center items-center text-center">
@@ -193,82 +229,82 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
           {showAnswer && (
             <div className="w-full max-w-2xl mt-4 md:mt-8 pt-6 md:pt-8 border-t border-border/40 text-left animate-in fade-in slide-in-from-bottom-2 duration-300">
               {/* Header Metadata */}
-              <div className="flex flex-wrap items-center gap-3 mb-6 md:mb-8">
+              <div className="flex flex-wrap items-center gap-3 mb-8 md:mb-10">
                 {currentCard.partOfSpeech && (
-                  <span className="px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20 text-xs md:text-sm font-black text-primary/90">
-                    {currentCard.partOfSpeech}
-                  </span>
+                  <div className="flex gap-2">
+                    {/* Standardized v10.0: split by spaces and uppercase */}
+                    {currentCard.partOfSpeech.split(/\s+/).map((pos, idx) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-lg bg-purple-100/80 border border-purple-200 text-xs md:text-sm font-bold text-purple-700 uppercase">
+                        {pos.trim().replace('.', '')}
+                      </span>
+                    ))}
+                  </div>
                 )}
                 {currentCard.phonetic && (
-                  <span className="font-mono text-sm md:text-base text-muted-foreground font-bold tracking-tight">
+                  <span className="font-mono text-base md:text-lg text-slate-500 font-medium tracking-tight">
                     {currentCard.phonetic}
-                  </span>
-                )}
-                {currentCard.contextType && (
-                  <span className="bg-secondary/60 text-muted-foreground px-2 py-0.5 rounded-md text-[10px] md:text-xs font-black uppercase tracking-widest border border-border/30">
-                    {currentCard.contextType}
                   </span>
                 )}
               </div>
 
               {/* Definition */}
-              <div className="text-xl md:text-2xl font-bold text-card-foreground mb-8 leading-tight">
+              <div className="text-2xl md:text-4xl font-black text-slate-900 mb-10 leading-tight">
                 {currentCard.definition}
               </div>
 
               {/* Morphology / Inflections */}
               {currentCard.morphology && (
                 <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground/50">
-                    <Hash className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">Inflections</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Hash className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Inflections</span>
                   </div>
-                  <div className="text-base md:text-lg font-medium text-card-foreground/80 pl-4 border-l-2 border-border/20">
+                  <div className="text-base md:text-lg font-semibold text-slate-600 pl-4 border-l-2 border-slate-200">
                     {currentCard.morphology}
                   </div>
                 </div>
               )}
 
-              {/* Example */}
+              {/* Example Section with subtle background */}
               {currentCard.example && (
-                <div className="mb-10 group">
-                  <div className="flex items-center gap-2 mb-3 text-muted-foreground/50">
-                    <Quote className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">Example</span>
+                <div className="mb-10 p-5 md:p-7 bg-slate-50/80 rounded-2xl border border-slate-100 group relative">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Quote className="w-3.5 h-3.5 text-slate-300" />
+                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-300">Contextual Example</span>
                     <button 
-                      className="p-1.5 rounded-md hover:bg-secondary transition-all hover:scale-110 active:scale-95"
+                      className="ml-auto p-2 rounded-xl bg-white shadow-sm hover:shadow-md transition-all hover:scale-105 active:scale-95 border border-slate-100"
                       onClick={(e) => { e.stopPropagation(); readText(currentCard.example || ''); }}
                     >
-                      <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-muted-foreground/40 hover:text-primary transition-colors" />
+                      <Volume2 className="w-4 h-4 md:w-5 h-5 text-indigo-400" />
                     </button>
                   </div>
-                  <div className="text-lg md:text-xl leading-relaxed text-card-foreground/90 font-medium pl-4 border-l-2 border-primary/40">
-                    {highlightWord(currentCard.example, currentCard.front, currentCard.morphology)}
+                  <div className="text-lg md:text-xl leading-relaxed text-slate-800 font-medium">
+                    {formatTagsInText(currentCard.example || '', currentCard.front, currentCard.morphology)}
                   </div>
                 </div>
               )}
 
-              {/* Bottom Grid for Secondary Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 mt-8 pt-8 border-t border-border/20">
+              {/* Bottom Grid with separate cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-10">
                 {currentCard.collocations && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/50">
-                      <Layers className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">Collocations</span>
+                  <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-[0_2px_8_px_-2px_rgba(0,0,0,0.05)]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Layers className="w-3.5 h-3.5 text-slate-300" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Collocations</span>
                     </div>
-                    <div className="text-sm md:text-base font-bold text-card-foreground/70 leading-relaxed">
-                      {currentCard.collocations}
+                    <div className="text-sm md:text-base font-bold text-slate-700 leading-relaxed">
+                      {formatTagsInText(currentCard.collocations, currentCard.front, currentCard.morphology, 'tagsOnly')}
                     </div>
                   </div>
                 )}
                 {currentCard.derivatives && (
-                  <div>
-                    <div className="flex items-center gap-2 mb-2 text-muted-foreground/50">
-                      <Link2 className="w-3.5 h-3.5" />
-                      <span className="text-[10px] font-black uppercase tracking-wider">Derivatives</span>
+                  <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Link2 className="w-3.5 h-3.5 text-slate-300" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Derivatives</span>
                     </div>
-                    <div className="text-sm md:text-base font-bold text-accent/70 leading-relaxed">
-                      {highlightWord(currentCard.derivatives, currentCard.front, currentCard.morphology)}
+                    <div className="text-sm md:text-base font-bold text-slate-700 leading-relaxed">
+                      {formatTagsInText(currentCard.derivatives, currentCard.front, currentCard.morphology, 'tagsOnly')}
                     </div>
                   </div>
                 )}

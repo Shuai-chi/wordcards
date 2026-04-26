@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v25.5.0] - 2026-04-25
+
+### [Added]
+- **WordForge v10.0 Data Standardization**: Implemented new POS format (lowercase with dots, space-separated).
+- **Context-Aware UI**: Replaced the "Learning" label on card backs with a beautifully styled "Context Tag" (Academic / Tech, Campus Life, General / Daily).
+- **Purple Tag Engine**: Upgraded visual styling for POS tags with automatic splitting and capitalization for multi-POS words.
+
+### [Optimized]
+- **Academic Language Policy**: Enforced "No Contractions" rule for `Academic / Tech` context, restoring full forms like `do not` for academic rigor.
+- **Workspace Hygiene**: Cleaned up `test-results` and optimized `.gitignore` rules.
+
 ## [v25.4.0] - 2026-04-14
 
 ### [Added]
