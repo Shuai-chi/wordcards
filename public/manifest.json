@@ -2,7 +2,7 @@
   "name": "WordForge - Vocabulary SRS",
   "short_name": "WordForge",
   "description": "A premium vocabulary learning system based on SRS.",
-  "start_url": "/wordcards/",
+  "start_url": "/SRS_Web_App/",
   "display": "standalone",
   "background_color": "#0a192f",
   "theme_color": "#112240",

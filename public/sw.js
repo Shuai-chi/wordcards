@@ -1,11 +1,11 @@
 const CACHE_NAME = 'wordforge-v1';
 const ASSETS_TO_CACHE = [
-  '/wordcards/',
-  '/wordcards/index.html',
-  '/wordcards/manifest.json',
-  '/wordcards/favicon.svg',
-  '/wordcards/pwa-192.png',
-  '/wordcards/pwa-512.png'
+  '/SRS_Web_App/',
+  '/SRS_Web_App/index.html',
+  '/SRS_Web_App/manifest.json',
+  '/SRS_Web_App/favicon.svg',
+  '/SRS_Web_App/pwa-192.png',
+  '/SRS_Web_App/pwa-512.png'
 ];
 
 self.addEventListener('install', (event) => {

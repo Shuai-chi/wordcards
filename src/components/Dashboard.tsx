@@ -209,7 +209,7 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="card-container p-4 flex flex-col justify-center bg-gray-50 dark:bg-gray-800/50">
+        <div className="card-container p-4 flex flex-col justify-center bg-secondary/20 border-border/30">
           <div className="text-xs font-medium text-muted mb-1">今日已練習</div>
           <div className="text-xl md:text-2xl font-bold flex items-center gap-2">
             <Target className="w-5 h-5 text-accent" />
@@ -233,7 +233,7 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-8 mb-4">
         <div className="flex items-baseline gap-3">
           <h2 className="text-lg font-bold">學習中心</h2>
-          <span className="text-sm text-muted">全域每日新卡上限：{globalLimit}</span>
+          <span className="text-xs md:text-sm text-muted font-medium bg-secondary/30 px-2 py-0.5 rounded-md border border-border/20">全域每日新卡上限：{globalLimit}</span>
         </div>
         
         <button 
@@ -357,21 +357,20 @@ export default function Dashboard({ decks, report, globalLimit, onStartSession, 
                      const total = p?.total ?? (d.cardCount ?? 0);
                      const pct = total > 0 ? Math.round((intro / total) * 100) : 0;
                      return (
-                       <div className="mt-2 w-full">
-                         <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                       <div className="mt-3 w-full">
+                         <div className="w-full h-1.5 bg-secondary/40 rounded-full overflow-hidden">
                            <div
                              className="h-full rounded-full transition-all duration-700 ease-out"
                              style={{
                                width: `${pct}%`,
                                background: pct === 100
-                                 ? 'linear-gradient(90deg, #10b981, #34d399)'
-                                 : pct >= 50
-                                   ? 'linear-gradient(90deg, #3b82f6, #60a5fa)'
-                                   : 'linear-gradient(90deg, #6366f1, #818cf8)',
+                                 ? 'var(--success)'
+                                 : 'var(--primary)',
+                               opacity: 0.8
                              }}
                            />
                          </div>
-                         <div className="text-[10px] text-muted mt-0.5 text-right">{pct}%</div>
+                         <div className="text-[9px] font-black text-muted/60 mt-1 text-right tracking-widest">{pct}%</div>
                        </div>
                      );
                    })()}

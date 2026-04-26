@@ -208,7 +208,7 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
             </span>
           ) : (
             currentCard.contextType && (
-              <span className="bg-indigo-50 border border-indigo-200 text-indigo-600 text-xs md:text-sm px-3 py-1 rounded-lg font-bold uppercase tracking-widest shadow-sm">
+              <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 text-xs md:text-sm px-3 py-1 rounded-lg font-bold uppercase tracking-widest shadow-sm">
                 {currentCard.contextType}
               </span>
             )
@@ -216,13 +216,13 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
         </div>
         
         <div className="flex-1 flex flex-col justify-center items-center text-center">
-          <h1 className="text-3xl md:text-6xl font-black mb-4 flex items-center justify-center tracking-tight text-card-foreground break-all">
+          <h1 className="text-3xl md:text-6xl font-black mb-4 flex items-center justify-center tracking-tight text-foreground break-all">
             {currentCard.front}
             <button 
               className="ml-4 p-2 rounded-full hover:bg-secondary transition-all hover:scale-110 active:scale-95"
               onClick={(e) => { e.stopPropagation(); readText(currentCard.front); }}
             >
-              <Volume2 className="w-7 h-7 md:w-9 h-9 text-muted-foreground/60 hover:text-primary transition-colors" />
+              <Volume2 className="w-7 h-7 md:w-9 h-9 text-muted-foreground/40 hover:text-primary transition-colors" />
             </button>
           </h1>
           
@@ -232,23 +232,22 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
               <div className="flex flex-wrap items-center gap-3 mb-8 md:mb-10">
                 {currentCard.partOfSpeech && (
                   <div className="flex gap-2">
-                    {/* Standardized v10.0: split by spaces and uppercase */}
                     {currentCard.partOfSpeech.split(/\s+/).map((pos, idx) => (
-                      <span key={idx} className="px-2.5 py-1 rounded-lg bg-purple-100/80 border border-purple-200 text-xs md:text-sm font-bold text-purple-700 uppercase">
+                      <span key={idx} className="px-2.5 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs md:text-sm font-bold text-primary uppercase">
                         {pos.trim().replace('.', '')}
                       </span>
                     ))}
                   </div>
                 )}
                 {currentCard.phonetic && (
-                  <span className="font-mono text-base md:text-lg text-slate-500 font-medium tracking-tight">
+                  <span className="font-mono text-base md:text-lg text-muted-foreground font-medium tracking-tight">
                     {currentCard.phonetic}
                   </span>
                 )}
               </div>
 
               {/* Definition */}
-              <div className="text-2xl md:text-4xl font-black text-slate-900 mb-10 leading-tight">
+              <div className="text-2xl md:text-4xl font-black text-foreground mb-10 leading-tight">
                 {currentCard.definition}
               </div>
 
@@ -256,54 +255,54 @@ export default function LearningView({ queue, setQueue, seenIds, onFinish }: Pro
               {currentCard.morphology && (
                 <div className="mb-8">
                   <div className="flex items-center gap-2 mb-2">
-                    <Hash className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Inflections</span>
+                    <Hash className="w-3.5 h-3.5 text-muted-foreground/40" />
+                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Inflections</span>
                   </div>
-                  <div className="text-base md:text-lg font-semibold text-slate-600 pl-4 border-l-2 border-slate-200">
+                  <div className="text-base md:text-lg font-semibold text-foreground/80 pl-4 border-l-2 border-border">
                     {currentCard.morphology}
                   </div>
                 </div>
               )}
 
-              {/* Example Section with subtle background */}
+              {/* Example Section */}
               {currentCard.example && (
-                <div className="mb-10 p-5 md:p-7 bg-slate-50/80 rounded-2xl border border-slate-100 group relative">
+                <div className="mb-10 p-5 md:p-7 bg-secondary/30 rounded-2xl border border-border/40 group relative">
                   <div className="flex items-center gap-2 mb-4">
-                    <Quote className="w-3.5 h-3.5 text-slate-300" />
-                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-300">Contextual Example</span>
+                    <Quote className="w-3.5 h-3.5 text-muted-foreground/30" />
+                    <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-muted-foreground/40">Contextual Example</span>
                     <button 
-                      className="ml-auto p-2 rounded-xl bg-white shadow-sm hover:shadow-md transition-all hover:scale-105 active:scale-95 border border-slate-100"
+                      className="ml-auto p-2 rounded-xl bg-background shadow-sm hover:shadow-md transition-all hover:scale-105 active:scale-95 border border-border/20"
                       onClick={(e) => { e.stopPropagation(); readText(currentCard.example || ''); }}
                     >
-                      <Volume2 className="w-4 h-4 md:w-5 h-5 text-indigo-400" />
+                      <Volume2 className="w-4 h-4 md:w-5 h-5 text-primary" />
                     </button>
                   </div>
-                  <div className="text-lg md:text-xl leading-relaxed text-slate-800 font-medium">
+                  <div className="text-lg md:text-xl leading-relaxed text-foreground font-medium">
                     {formatTagsInText(currentCard.example || '', currentCard.front, currentCard.morphology)}
                   </div>
                 </div>
               )}
 
-              {/* Bottom Grid with separate cards */}
+              {/* Bottom Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mt-10">
                 {currentCard.collocations && (
-                  <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-[0_2px_8_px_-2px_rgba(0,0,0,0.05)]">
+                  <div className="p-4 bg-secondary/20 rounded-xl border border-border/40 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
-                      <Layers className="w-3.5 h-3.5 text-slate-300" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Collocations</span>
+                      <Layers className="w-3.5 h-3.5 text-muted-foreground/30" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Collocations</span>
                     </div>
-                    <div className="text-sm md:text-base font-bold text-slate-700 leading-relaxed">
+                    <div className="text-sm md:text-base font-bold text-foreground/80 leading-relaxed">
                       {formatTagsInText(currentCard.collocations, currentCard.front, currentCard.morphology, 'tagsOnly')}
                     </div>
                   </div>
                 )}
                 {currentCard.derivatives && (
-                  <div className="p-4 bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)]">
+                  <div className="p-4 bg-secondary/20 rounded-xl border border-border/40 shadow-sm">
                     <div className="flex items-center gap-2 mb-3">
-                      <Link2 className="w-3.5 h-3.5 text-slate-300" />
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Derivatives</span>
+                      <Link2 className="w-3.5 h-3.5 text-muted-foreground/30" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/40">Derivatives</span>
                     </div>
-                    <div className="text-sm md:text-base font-bold text-slate-700 leading-relaxed">
+                    <div className="text-sm md:text-base font-bold text-foreground/80 leading-relaxed">
                       {formatTagsInText(currentCard.derivatives, currentCard.front, currentCard.morphology, 'tagsOnly')}
                     </div>
                   </div>
