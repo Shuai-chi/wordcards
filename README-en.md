@@ -2,6 +2,11 @@
 
 A minimalist flashcard system designed for advanced English learners. Features PWA support, custom CSV imports, and a precise SRS (Spaced Repetition System) mechanism.
 
+## ✨ Key Features
+*   **High-Quality Decks**: Supports custom CSV imports with a precise SRS mechanism.
+*   **Smart Refinement**: Automatic filtering of AI fluff and verbal fillers.
+*   **Context-Aware**: Perfectly adapted for Academic, Campus, and Daily scenarios.
+
 ## 📲 Access & Installation
 
 ### 1. Web Version (Fastest)

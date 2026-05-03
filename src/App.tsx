@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Settings, Upload, HardDriveUpload } from 'lucide-react';
+import { Settings, Upload, BookOpen, Sun, Moon } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import LearningView from './components/LearningView';
 import FinishedView from './components/FinishedView';
@@ -11,24 +11,41 @@ import EditDeckModal from './components/EditDeckModal';
 
 export type ViewState = 'dashboard' | 'learning' | 'finished';
 
+// Detect system preference
+function getSystemTheme(): 'light' | 'dark' {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 function App() {
   const [view, setView] = useState<ViewState>('dashboard');
   const [decks, setDecks] = useState<Deck[]>([]);
   const [report, setReport] = useState<Report | null>(null);
-  
+
   const [sessionQueue, setSessionQueue] = useState<Card[]>([]);
   const [seenCardIds, setSeenCardIds] = useState<Set<string>>(new Set());
-  
-  const [globalDailyLimit, setGlobalDailyLimit] = useState(30);
 
+  const [globalDailyLimit, setGlobalDailyLimit] = useState(30);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Theme management
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('srs_theme') as 'light' | 'dark' | null;
+    return saved ?? getSystemTheme();
+  });
 
   // Modals
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [editingDeck, setEditingDeck] = useState<Deck | null>(null);
 
-  // File Upload Reference for Navbar button
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Apply theme to <html> element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('srs_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => (t === 'dark' ? 'light' : 'dark'));
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -42,7 +59,7 @@ function App() {
 
       const _decks = await DB.getAllDecks();
       setDecks(_decks);
-      
+
       const r = await DB.getTodayReport();
       setReport(r);
     } catch (err) {
@@ -53,9 +70,9 @@ function App() {
   };
 
   useEffect(() => {
-     
     loadData();
   }, [view]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -70,14 +87,14 @@ function App() {
         groupName = groupMatch[1];
         deckName = deckName.replace(groupMatch[0], '').trim();
       }
-      
+
       try {
         const deckId = 'deck-' + Date.now() + '-' + i;
         const { cards, skipped } = await parseCSV(file, deckId, groupName);
-        
+
         const newLimit = Math.min(20, cards.length);
         const newDeck: Deck = { id: deckId, name: deckName, newCardLimit: newLimit, cardCount: cards.length };
-        
+
         await DB.putDeck(newDeck);
         await DB.putCards(cards);
         successCount++;
@@ -86,47 +103,82 @@ function App() {
         alert(`${file.name} 匯入失敗: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
-    
+
     if (successCount > 0) {
       showToast(`成功匯入 ${successCount} 個套牌`);
       loadData();
     }
-    
+
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans">
-      <header className="sticky top-0 z-30 w-full border-b border-border bg-background/80 backdrop-blur-md">
+      {/* ── Header ── */}
+      <header className="sticky top-0 z-30 w-full border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto max-w-4xl px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setView('dashboard'); loadData(); }}>
-            <div className="bg-primary text-white p-1.5 rounded-lg shadow-sm">
-              <HardDriveUpload className="w-5 h-5" />
+          {/* Logo */}
+          <div
+            className="flex items-center gap-2.5 cursor-pointer group select-none"
+            onClick={() => { setView('dashboard'); loadData(); }}
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white transition-transform group-hover:scale-105"
+              style={{ background: 'var(--primary)' }}
+            >
+              <BookOpen className="w-4 h-4" />
             </div>
-            <h1 className="text-xl font-bold tracking-tight">WordForge</h1>
+            <span className="text-base font-bold tracking-tight">WordForge</span>
           </div>
-          <div className="flex items-center gap-3">
-            <label className="p-2 -mr-1 rounded-full hover:bg-secondary cursor-pointer transition-colors text-muted hover:text-foreground" title="匯入 CSV">
-              <Upload className="w-5 h-5" />
-              <input type="file" accept=".csv" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
+
+          {/* Actions */}
+          <div className="flex items-center gap-1">
+            {/* Upload CSV */}
+            <label
+              className="btn btn-ghost w-9 h-9 p-0 rounded-lg cursor-pointer"
+              title="匯入 CSV 套牌"
+            >
+              <Upload className="w-4 h-4" />
+              <input
+                type="file"
+                accept=".csv"
+                multiple
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+              />
             </label>
-            
-            <button 
-              className="p-2 -mr-2 rounded-full hover:bg-secondary transition-colors text-muted hover:text-foreground"
+
+            {/* Theme Toggle */}
+            <button
+              className="btn btn-ghost w-9 h-9 p-0 rounded-lg"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
+            >
+              {theme === 'dark'
+                ? <Sun className="w-4 h-4" />
+                : <Moon className="w-4 h-4" />
+              }
+            </button>
+
+            {/* Settings */}
+            <button
+              className="btn btn-ghost w-9 h-9 p-0 rounded-lg"
               onClick={() => setIsSettingsOpen(true)}
               title="設定"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-8 layout-container">
+      {/* ── Main Content ── */}
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-8">
         {view === 'dashboard' && (
-          <Dashboard 
-            decks={decks} 
-            report={report} 
+          <Dashboard
+            decks={decks}
+            report={report}
             globalLimit={globalDailyLimit}
             onStartSession={(queue) => {
               setSessionQueue(queue);
@@ -135,10 +187,7 @@ function App() {
             }}
             onEditDeck={(d) => setEditingDeck(d)}
             onDeleteDeck={async (id) => {
-              if (!id) {
-                loadData();
-                return;
-              }
+              if (!id) { loadData(); return; }
               if (confirm('確定要刪除這組套牌嗎？')) {
                 await DB.deleteDeck(id);
                 loadData();
@@ -152,31 +201,34 @@ function App() {
             queue={sessionQueue}
             setQueue={setSessionQueue}
             seenIds={seenCardIds}
-            onFinish={() => {
-              setView('finished');
-            }}
+            onFinish={() => setView('finished')}
           />
         )}
 
         {view === 'finished' && (
           <FinishedView
             seenCount={seenCardIds.size}
-            onBack={() => {
-              setView('dashboard');
-              loadData();
-            }}
+            onBack={() => { setView('dashboard'); loadData(); }}
           />
         )}
       </main>
 
+      {/* ── Toast ── */}
       {toastMsg && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background px-4 py-2 rounded-full shadow-lg text-sm transition-all animate-bounce">
+        <div className="fixed bottom-6 left-1/2 z-50 animate-toast px-4 py-2 rounded-full shadow-lg text-sm font-medium"
+          style={{
+            background: 'var(--foreground)',
+            color: 'var(--background)',
+            transform: 'translateX(-50%)',
+          }}
+        >
           {toastMsg}
         </div>
       )}
 
+      {/* ── Modals ── */}
       {isSettingsOpen && (
-        <SettingsModal 
+        <SettingsModal
           currentLimit={globalDailyLimit}
           onSave={(limit) => {
             setGlobalDailyLimit(limit);
