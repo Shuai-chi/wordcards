@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-05-04
+
+### [全新功能與視覺升級]
+- **高質感設計系統**：全面翻新色彩系統，採用暖石灰底色搭配深赭石琥珀 (`oklch(52% 0.12 42)`)，捨棄生冷的科技感；字型升級為 DM Sans 與 DM Mono，並完整實作深淺色模式（支援系統偏好、手動切換與 `data-theme` 屬性）。
+- **多語系架構**：新增 8 種介面語言（繁中、英、日、韓、德、西、法、泰）即時切換。
+- **語言智能偵測**：匯入 CSV 時可依據 Unicode 字元與 Header 自動識別該套牌語言，並於 Dashboard 提供按語言過濾套牌的專屬標籤。
+- **動態單字卡適配**：為不同語系提供專屬的卡片渲染邏輯（如：日語支援假名與漢字並列、德語標示文法性、泰語標示聲調與專屬字型放大）。
+
+### [文件與規範更新]
+- **更新 README**：大幅更新說明文件，聚焦於網頁端的多語系支援與設計系統升級。
+- **升級單字卡規範 (v13.0 Ultimate)**：根據最新的 `srs-expert` 技能標準，更新了 `prompts/SPEC.md` 以及所有的 AI 提示詞範本 (`*-cards_zh-tw.txt`)。
+  - 引入了**微批次處理 (Micro-Batching)** 限制（每批次不超過 30 個單字）。
+  - 新增針對各語系的專屬規範與防退化條款，確保產出品質。
+  - 實施**系統級雙軌制**，加強動名詞同形防呆與例句唯一性。
+- **TTS 容錯機制**：在全域設定中增加泰語等特定語系可能缺乏瀏覽器語音合成支援的提示說明。
+
 ## [1.3.0] - 2026-04-25
 
 ### [新增]

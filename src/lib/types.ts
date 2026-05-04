@@ -3,6 +3,7 @@ export interface Deck {
   name: string;
   newCardLimit?: number;
   cardCount?: number;
+  language?: string; // SupportedLang code, e.g. 'en' | 'ja' | 'ko' ...
 }
 
 export type CardState = 'new' | 'learning' | 'relearning' | 'graduated';
@@ -21,6 +22,7 @@ export interface Card {
   group: string;
   front: string;
   back: string;
+  // Universal fields
   morphology?: string;
   derivatives?: string;
   phonetic?: string;
@@ -29,6 +31,13 @@ export interface Card {
   example?: string;
   collocations?: string;
   contextType?: string;
+  // Language-specific extra fields
+  kanji?: string;       // Japanese kanji form
+  hanja?: string;       // Korean hanja form
+  romaji?: string;      // Romanization (JP/KO/TH)
+  gender?: string;      // Grammatical gender (DE/ES/FR)
+  tone?: string;        // Thai tone marker
+  // SRS state
   state: CardState;
   interval: number;
   easeFactor: number;

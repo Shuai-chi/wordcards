@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v25.6.0] - 2026-05-04
+
+### [New Features & Visual Upgrades]
+- **Premium Design System**: Completely revamped color system with a warm stone gray base and deep ochre amber accent (`oklch(52% 0.12 42)`), moving away from the cold tech feel. Upgraded fonts to DM Sans and DM Mono, and fully implemented a 3-layer Dark/Light mode (system preference, manual toggle, `data-theme` attribute).
+- **Multilingual Architecture**: Added 8 UI languages (Traditional Chinese, English, Japanese, Korean, German, Spanish, French, Thai) with instant switching.
+- **Smart Language Detection**: Automatically identifies the language of a deck upon CSV import based on Unicode characters and headers, adding language-specific filter chips to the Dashboard.
+- **Dynamic Flashcard Adaptation**: Implemented exclusive card rendering logic for different languages (e.g., Kana & Kanji for Japanese, grammar gender for German, specific tones for Thai).
+
+### [Documentation & Specification Updates]
+- **README Overhaul**: Updated documentation to highlight the new multilingual architecture and design system upgrades.
+- **Upgraded Card Specifications (v13.0 Ultimate)**: Synchronized `prompts/SPEC.md` and all AI prompt templates (`*-cards_*.txt`) with the latest `srs-expert` standard.
+  - Implemented **Micro-Batching** limits (max 30 words per batch).
+  - Added exclusive formatting and anti-regression rules for all supported languages.
+  - Introduced **System-level Double-Track** rules to enhance zero-derivation guards and ensure example sentence uniqueness.
+- **TTS Fallback Mechanism**: Added a fallback hint in Global Settings for languages like Thai that may lack browser speech synthesis support.
+
 ## [v25.5.0] - 2026-04-25
 
 ### [Added]

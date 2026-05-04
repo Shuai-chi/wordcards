@@ -2,10 +2,13 @@
 
 A minimalist flashcard system designed for advanced English learners. Features PWA support, custom CSV imports, and a precise SRS (Spaced Repetition System) mechanism.
 
-## ✨ Key Features
-*   **High-Quality Decks**: Supports custom CSV imports with a precise SRS mechanism.
-*   **Smart Refinement**: Automatic filtering of AI fluff and verbal fillers.
-*   **Context-Aware**: Perfectly adapted for Academic, Campus, and Daily scenarios.
+## ✨ Core Features
+*   **Multilingual Architecture & UI**: Supports 8 UI languages (Traditional Chinese, English, Japanese, Korean, German, Spanish, French, Thai) with **custom flashcard layouts** for each language (e.g., Kana/Kanji for Japanese, gender for German, tone for Thai).
+*   **Comprehensive Text-to-Speech (TTS)**: Not only supports word pronunciation, but also includes **TTS for example sentences on the back** to reinforce listening skills.
+*   **Design System & Dark/Light Mode**: Features a premium warm stone gray and deep ochre amber color palette, powered by DM Sans and DM Mono fonts. Offers robust 3-layer Dark/Light mode support to protect your eyes.
+*   **Progressive Web App (PWA)**: Installable to mobile and desktop for a native, full-screen, and offline-capable app experience.
+*   **Local Privacy (IndexedDB)**: All decks (including language properties) and learning progress are securely stored locally. No internet connection is required, ensuring absolute privacy.
+*   **High-Quality CSV Support**: Seamlessly import CSV files that comply with WordForge SRS-Expert v13.0 standards, featuring **automatic language detection** and a smart filtering system.
 
 ## 📲 Access & Installation
 
@@ -29,7 +32,7 @@ For the best experience (full screen, smoother voice playback), it is highly rec
 ## 🛠️ User Guide
 
 ### Step 1: Prepare & Import
-1.  **Generate Cards**: Follow the [Card Specifications & AI Prompts](./prompts/SPEC.md) to generate high-quality CSV files.
+1.  **Generate Cards**: Follow the [Card Specifications & AI Prompts (v13.0)](./prompts/SPEC.md) to generate high-quality CSV files.
 2.  **Import**: Click the **"Upload"** icon on the home screen and select your CSV files.
 
 ### Step 2: Settings

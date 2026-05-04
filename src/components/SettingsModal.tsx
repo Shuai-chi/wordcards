@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
+import type { UIStrings } from '../lib/languages';
 
 interface Props {
   currentLimit: number;
+  strings: UIStrings;
   onSave: (limit: number) => void;
   onClose: () => void;
 }
 
-export default function SettingsModal({ currentLimit, onSave, onClose }: Props) {
+export default function SettingsModal({ currentLimit, strings, onSave, onClose }: Props) {
   const [val, setVal] = useState(currentLimit.toString());
-  
-  // Close on Escape key
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handleEsc);
@@ -17,15 +18,19 @@ export default function SettingsModal({ currentLimit, onSave, onClose }: Props) 
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={onClose}>
-      <div className="bg-card w-full max-w-sm rounded-xl shadow-lg border border-border p-6 relative" onClick={e => e.stopPropagation()}>
-        <h2 className="text-xl font-bold mb-4">全域設定</h2>
-        
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
+        <h2 className="text-lg font-bold mb-5" style={{ letterSpacing: '-0.01em' }}>
+          {strings.globalSettings}
+        </h2>
+
         <div className="mb-6">
-          <label className="block text-sm font-medium text-muted mb-2">每日全域新卡上限 (0-1000)</label>
-          <input 
-            type="number" 
-            className="input" 
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--muted)' }}>
+            {strings.globalLimit}
+          </label>
+          <input
+            type="number"
+            className="input"
             value={val}
             onChange={e => setVal(e.target.value)}
             min={0}
@@ -34,9 +39,20 @@ export default function SettingsModal({ currentLimit, onSave, onClose }: Props) 
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3">
-          <button className="btn btn-secondary px-6" onClick={onClose}>取消</button>
-          <button className="btn btn-primary px-6" onClick={() => onSave(Math.max(0, parseInt(val) || 0))}>儲存</button>
+        <div className="mb-6 text-xs text-center" style={{ color: 'var(--muted)', opacity: 0.8 }}>
+          {strings.ttsFallbackHint}
+        </div>
+
+        <div className="flex items-center justify-end gap-2">
+          <button className="btn btn-secondary px-5" onClick={onClose}>
+            {strings.cancel}
+          </button>
+          <button
+            className="btn btn-primary px-5"
+            onClick={() => onSave(Math.max(0, parseInt(val) || 0))}
+          >
+            {strings.save}
+          </button>
         </div>
       </div>
     </div>
