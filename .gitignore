@@ -1,0 +1,25 @@
+# Build outputs
+dist/
+node_modules/
+
+# IDE & OS
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Test results & logs
+test-results/
+playwright-report/
+*.log
+*.tsbuildinfo
+
+# Local Data (raw working decks stay local; only curated samples are tracked)
+data/
+*.csv
+!sample-decks/**/*.csv
+
+# Internal dev notes (not published)
+AGENTS.md
+SKILL.md
+project-specs/
+project-tasks/

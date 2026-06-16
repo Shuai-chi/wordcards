@@ -1,0 +1,371 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ─────────────────────────────────────────
+     Design Token — 兩層架構 (V2_P1_Cleanup Stage 5)
+
+     Layer 1 (Primitive):  --slate-50, --blue-500 等原始色值
+     Layer 2 (Semantic):   --background, --primary 等語意層, 引用 primitive
+     使用組件層: 只用 Semantic, 永不直接用 Primitive
+  ───────────────────────────────────────── */
+  :root {
+    /* ── Layer 1: Primitive — 原始色板 ── */
+    --slate-50:   #f8fafc;
+    --slate-100:  #f1f5f9;
+    --slate-200:  #e2e8f0;
+    --slate-400:  #94a3b8;
+    --slate-500:  #64748b;
+    --slate-700:  #334155;
+    --slate-800:  #1e293b;
+    --slate-900:  #0f172a;
+    --blue-200:   #bfdbfe;
+    --blue-300:   #93c5fd;
+    --blue-400:   #60a5fa;
+    --blue-500:   #3b82f6;
+    --violet-200: #ddd6fe;
+    --violet-300: #c4b5fd;
+    --violet-500: #8b5cf6;
+    --emerald-400:#34d399;
+    --emerald-500:#10b981;
+    --amber-400:  #fbbf24;
+    --amber-500:  #f59e0b;
+    --red-400:    #f87171;
+    --red-500:    #ef4444;
+    --white:      #ffffff;
+
+    /* ── Layer 2: Semantic — Light Mode 預設 ── */
+    --background:        var(--slate-50);
+    --foreground:        var(--slate-900);
+    --primary:           var(--blue-500);
+    --primary-light:     var(--blue-400);
+    --primary-foreground:var(--white);
+    --secondary:         var(--slate-100);
+    --accent:            var(--violet-500);
+    --muted:             var(--slate-500);
+    --border:            var(--slate-200);
+    --success:           var(--emerald-500);
+    --warning:           var(--amber-500);
+    --danger:            var(--red-500);
+    --card:              var(--white);
+    --card-foreground:   var(--slate-900);
+    --surface:           var(--slate-100);
+    --overlay:           rgba(15, 23, 42, 0.5);
+
+    /* 8px Grid tokens (尺寸) */
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+  }
+
+  /* ─────────────────────────────────────────
+     Dark Mode — Semantic 層 override (引用同一 primitive)
+  ───────────────────────────────────────── */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --background:        var(--slate-900);
+      --foreground:        var(--slate-100);
+      --primary:           var(--blue-300);
+      --primary-light:     var(--blue-200);
+      --primary-foreground:var(--slate-900);
+      --secondary:         var(--slate-800);
+      --accent:            var(--violet-300);
+      --accent-light:      var(--violet-200);
+      --muted:             var(--slate-400);
+      --border:            var(--slate-700);
+      --success:           var(--emerald-400);
+      --warning:           var(--amber-400);
+      --danger:            var(--red-400);
+      --card:              var(--slate-800);
+      --card-foreground:   var(--slate-100);
+      --surface:           var(--slate-900);
+      --overlay:           rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  [data-theme="dark"] {
+    --background:        var(--slate-900);
+    --foreground:        var(--slate-100);
+    --primary:           var(--blue-300);
+    --primary-light:     var(--blue-200);
+    --primary-foreground:var(--slate-900);
+    --secondary:         var(--slate-800);
+    --accent:            var(--violet-300);
+    --accent-light:      var(--violet-200);
+    --muted:             var(--slate-400);
+    --border:            var(--slate-700);
+    --success:           var(--emerald-400);
+    --warning:           var(--amber-400);
+    --danger:            var(--red-400);
+    --card:              var(--slate-800);
+    --card-foreground:   var(--slate-100);
+    --surface:           var(--slate-900);
+    --overlay:           rgba(0, 0, 0, 0.7);
+  }
+
+  [data-theme="light"] {
+    --background:        var(--slate-50);
+    --foreground:        var(--slate-900);
+    --primary:           var(--blue-500);
+    --primary-light:     var(--blue-400);
+    --primary-foreground:var(--white);
+    --secondary:         var(--slate-100);
+    --accent:            var(--violet-500);
+    --muted:             var(--slate-500);
+    --border:            var(--slate-200);
+    --success:           var(--emerald-500);
+    --warning:           var(--amber-500);
+    --danger:            var(--red-500);
+    --card:              var(--white);
+    --card-foreground:   var(--slate-900);
+    --surface:           var(--slate-100);
+    --overlay:           rgba(15, 23, 42, 0.5);
+  }
+
+  html {
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Monospace for phonetics / IPA */
+  .font-mono {
+    font-family: 'DM Mono', 'Fira Mono', 'Courier New', monospace;
+  }
+}
+
+@layer components {
+
+  /* ── Buttons ── */
+  .btn {
+    @apply inline-flex items-center justify-center font-semibold
+      transition-all duration-150 ease-in-out
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
+      disabled:pointer-events-none disabled:opacity-40
+      select-none cursor-pointer
+      h-10 px-4 py-2 text-sm;
+    border-radius: var(--radius-sm); /* 8px */
+  }
+  .btn:focus-visible {
+    --tw-ring-color: var(--primary);
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    letter-spacing: 0.01em;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  }
+  .btn-primary:hover {
+    background: var(--primary-light);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+    transform: translateY(-1px);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  }
+
+  .btn-secondary {
+    background: var(--secondary);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover {
+    background: var(--border);
+  }
+
+  /* ── Card ── */
+  .card-container {
+    background: var(--card);
+    color: var(--card-foreground);
+    border-radius: var(--radius-lg); /* 24px */
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ── Stat Card ── */
+  .stat-card {
+    background: var(--card);
+    color: var(--card-foreground);
+    border-radius: var(--radius-md); /* 16px */
+    border: 1px solid var(--border);
+    padding: 1.5rem; /* 24px */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* 8px */
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  /* ── Input ── */
+  .input {
+    @apply flex h-10 w-full border px-3 py-2
+      text-sm
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1
+      disabled:cursor-not-allowed disabled:opacity-50
+      transition-colors duration-150;
+    border-radius: var(--radius-sm); /* 8px */
+    background: var(--background);
+    color: var(--foreground);
+    border-color: var(--border);
+  }
+
+  /* ── Rating Buttons ── */
+  .rating-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-md); /* 16px */
+    border-width: 2px;
+    border-style: solid;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 72px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .rating-btn:hover {
+    transform: translateY(-4px);
+    filter: brightness(1.1);
+    box-shadow: 0 12px 24px -8px rgba(0,0,0,0.4);
+  }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem; /* 32px */
+    background: var(--overlay);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .modal-panel {
+    background: var(--card);
+    color: var(--card-foreground);
+    width: 100%;
+    max-width: 28rem;
+    border-radius: var(--radius-lg); /* 24px */
+    border: 1px solid var(--border);
+    padding: 2rem; /* 32px */
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  /* ── Progress bar track ── */
+  .progress-track {
+    width: 100%;
+    height: 6px;
+    border-radius: 9999px;
+    overflow: hidden;
+    background: var(--secondary);
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  }
+}
+
+@layer utilities {
+  .bg-background  { background-color: var(--background); }
+  .bg-card        { background-color: var(--card); }
+  .bg-secondary   { background-color: var(--secondary); }
+  .bg-surface     { background-color: var(--surface); }
+  .text-foreground { color: var(--foreground); }
+  .text-muted     { color: var(--muted); }
+  .text-primary   { color: var(--primary); }
+  .border-border  { border-color: var(--border); }
+
+  /* Animations */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-answer-in {
+    animation: fadeSlideIn 0.22s ease-out both;
+  }
+
+  @keyframes softPulse {
+    0%, 100% { opacity: 0.35; }
+    50%       { opacity: 0.65; }
+  }
+  .animate-soft-pulse {
+    animation: softPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  .animate-toast {
+    animation: toastIn 0.2s ease-out both;
+  }
+
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.97) translateY(4px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .animate-modal-in {
+    animation: modalIn 0.2s ease-out both;
+  }
+
+  @keyframes cardFlip {
+    0%   { transform: rotateY(0deg); }
+    50%  { transform: rotateY(90deg); }
+    100% { transform: rotateY(0deg); }
+  }
+
+  /* Subtle grain texture via pseudo */
+  .surface-grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    border-radius: inherit;
+    opacity: 0.35;
+  }
+
+  /* ─────────────────────────────────────────
+     Accessibility: 前庭敏感 / 動暈症使用者
+     遵循 prefers-reduced-motion 系統偏好,
+     關閉所有非必要動畫.
+  ───────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    .animate-soft-pulse,
+    .animate-answer-in,
+    .animate-toast,
+    .animate-modal-in {
+      animation: none !important;
+    }
+  }
+}

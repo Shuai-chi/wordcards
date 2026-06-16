@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head><title>Inject</title></head>
+<body>
+<script>
+// Inject bilingual test data into IndexedDB
+const DB_NAME = 'SRS_DB';
+const DB_VERSION = 1;
+
+function promiseReq(req) {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function main() {
+  const db = await promiseReq(indexedDB.open(DB_NAME, DB_VERSION));
+
+  // Clear existing
+  db.transaction(['cards'], 'readwrite').objectStore('cards').clear();
+  db.transaction(['decks'], 'readwrite').objectStore('decks').clear();
+
+  // Add deck
+  await promiseReq(db.transaction('decks', 'readwrite').objectStore('decks').put({ id: 'deck_test', name: 'Test Deck', language: 'en', todayCount: 0, todayTime: 0, todayCorrect: 0, reviewedAt: null }));
+
+  // Add cards
+  const cards = [
+    { deckId: 'deck_test', front: 'euphoria', back: 'a state of complete happiness', definition: 'a state of complete happiness｜極度幸福且正式的心理狀態', definitionLang: 'zh', notes: '' },
+    { deckId: 'deck_test', front: 'sakura', back: 'cherry blossom', definition: 'cherry blossom｜桜', definitionLang: 'ja', notes: '' },
+    { deckId: 'deck_test', front: 'ordnung', back: 'order', definition: 'order｜Ordnung', definitionLang: 'de', notes: '' },
+    { deckId: 'deck_test', front: 'wisdom', back: 'wisdom', definition: 'the quality of having experience, knowledge, and good judgement', definitionLang: undefined, notes: '' },
+  ];
+
+  for (const card of cards) {
+    await promiseReq(db.transaction('cards', 'readwrite').objectStore('cards').add(card));
+  }
+
+  document.body.innerText = 'done: 1 deck + 4 cards injected';
+}
+
+main().catch(e => { document.body.innerText = 'Error: ' + e.message; });
+<\/script>
+</body>
+</html>

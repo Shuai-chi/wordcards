@@ -1,0 +1,5 @@
+# Normalize line endings to LF across WSL, Windows, and macOS.
+* text=auto eol=lf
+
+# Binary assets (never modified).
+*.png binary
