@@ -2,6 +2,13 @@
 dist/
 node_modules/
 
+# Python (course examples)
+__pycache__/
+*.pyc
+.venv/
+.env
+*.db
+
 # IDE & OS
 .vscode/
 .DS_Store
