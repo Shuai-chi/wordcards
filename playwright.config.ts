@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 60000,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173/wordcards/',
+    baseURL: 'http://localhost:5173/',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     headless: true,
@@ -15,7 +15,7 @@ export default defineConfig({
   // 讓 Playwright 自動啟動 dev server
   webServer: {
     command: 'npm run dev',
-    url: 'http://localhost:5173/wordcards/',
+    url: 'http://localhost:5173/',
     reuseExistingServer: true,
     timeout: 30000,
   },
