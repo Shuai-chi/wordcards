@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import type { UIStrings } from '../lib/languages';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 
 export default function BulkEditModal({ selectedCount, strings, onClose, onSave }: Props) {
   const [val, setVal] = useState('20');
+  const panelRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -19,7 +21,7 @@ export default function BulkEditModal({ selectedCount, strings, onClose, onSave 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-1" style={{ letterSpacing: '-0.01em' }}>
           {strings.editLimit}
         </h2>

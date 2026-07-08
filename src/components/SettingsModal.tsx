@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import type { UIStrings } from '../lib/languages';
 
 type DefLangPref = 'deck' | 'user' | 'bilingual';
@@ -15,6 +16,7 @@ interface Props {
 export default function SettingsModal({ currentLimit, defLangPref, strings, onSave, onDefLangPrefSave, onClose }: Props) {
   const [val, setVal] = useState(currentLimit.toString());
   const [selectedPref, setSelectedPref] = useState<DefLangPref>(defLangPref);
+  const panelRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -30,7 +32,7 @@ export default function SettingsModal({ currentLimit, defLangPref, strings, onSa
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-5" style={{ letterSpacing: '-0.01em' }}>
           {strings.globalSettings}
         </h2>

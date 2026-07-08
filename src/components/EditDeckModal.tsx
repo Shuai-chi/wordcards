@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useFocusTrap } from '../lib/useFocusTrap';
 import type { Deck } from '../lib/types';
 import type { UIStrings } from '../lib/languages';
 
@@ -12,6 +13,7 @@ interface Props {
 export default function EditDeckModal({ deck, strings, onSave, onClose }: Props) {
   const [name, setName] = useState(deck.name);
   const [limit, setLimit] = useState((deck.newCardLimit ?? 20).toString());
+  const panelRef = useFocusTrap<HTMLDivElement>();
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -21,7 +23,7 @@ export default function EditDeckModal({ deck, strings, onSave, onClose }: Props)
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
+      <div ref={panelRef} role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-5" style={{ letterSpacing: '-0.01em' }}>
           {strings.editDeck}
         </h2>

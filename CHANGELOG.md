@@ -2,6 +2,11 @@
 
 本檔記錄專案的重要變更。格式依循 [Keep a Changelog](https://keepachangelog.com/zh-TW/1.0.0/),版本遵循 [語意化版本](https://semver.org/lang/zh-TW/)。
 
+## [1.0.2] - 2026-07-09
+
+### [新增]
+- 彈窗鍵盤焦點鎖定（focus trap）：設定/編輯牌組/批次編輯三個彈窗開啟時，Tab 焦點循環鎖定於彈窗內，不再逸出到背景（`useFocusTrap` hook）。
+
 ## [1.0.1] - 2026-07-08
 
 ### [修正]
