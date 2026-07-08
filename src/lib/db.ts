@@ -44,11 +44,22 @@ export const DB = {
           }
         };
         request.onsuccess = () => {
-          db = request.result;
+          const _db = request.result;
+          _db.onversionchange = () => { db?.close(); db = null; dbReady = null; };
+          _db.onclose = () => { db = null; dbReady = null; };
+          db = _db;
           resolve();
         };
-        request.onerror = () => reject(request.error || new Error('Database opening error (possibly blocked by private mode or quota)'));
+        request.onerror = () => {
+          dbReady = null;
+          reject(request.error || new Error('Database opening error (possibly blocked by private mode or quota)'));
+        };
+        request.onblocked = () => {
+          dbReady = null;
+          reject(new Error('Database blocked: please close other tabs of this app'));
+        };
       } catch (err) {
+        dbReady = null;
         reject(err);
       }
     });
@@ -77,6 +88,7 @@ export const DB = {
         tx.objectStore('decks').put(deck);
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error || new Error('Failed to save deck to database (check storage quota)'));
+        tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
       } catch (err) {
         reject(err);
       }
@@ -101,6 +113,7 @@ export const DB = {
         };
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error || new Error('Failed to delete deck'));
+        tx.onabort = () => reject(tx.error || new Error('Transaction aborted'));
       } catch (err) {
         reject(err);
       }
@@ -164,7 +177,7 @@ export const DB = {
       try {
         const tx = db!.transaction(['cards', 'reports'], 'readwrite');
         tx.onabort = () => reject(tx.error || new Error('Review transaction aborted'));
-        tx.onerror = (e) => { e.preventDefault(); };
+        tx.onerror = () => reject(tx.error || new Error('Review transaction failed'));
 
         tx.objectStore('cards').put(updatedCard);
 
