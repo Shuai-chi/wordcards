@@ -185,27 +185,56 @@ export const LANG_CONFIGS: Record<SupportedLang, LangConfig> = {
 // Detect language from CSV content
 export function detectLanguageFromCSV(csvText: string): SupportedLang {
   const firstLine = csvText.split('\n')[0] || '';
-  const firstLineClean = firstLine.replace(/"/g, '');
+  const firstLineClean = firstLine
+    .replace(/^\uFEFF/, '')
+    .replace(/"/g, '')
+    .replace(/\r/g, '')
+    .trim();
 
-  // 1. Strict Header Detection
-  if (firstLineClean.includes('Kana') || firstLineClean.includes('Kanji')) return 'ja';
-  if (firstLineClean.includes('Hangul') || firstLineClean.includes('Hanja')) return 'ko';
-  if (firstLineClean.includes('ThaiScript') || firstLineClean.includes('Tone')) return 'th';
-  
-  const hasGender = firstLineClean.includes('Gender');
-  const hasDeclension = firstLineClean.includes('Declension') || firstLineClean.includes('Inflections');
-  const hasStandard9 = firstLineClean.includes('IPA') && firstLineClean.includes('POS') && firstLineClean.includes('Context_Type');
-
-  if (hasStandard9) return 'en';
-
-  if (hasGender) {
-    if (hasDeclension) return 'de';
-  }
-
-  // 2. Content Pattern Detection (Frequency based to avoid loanword false positives)
   const sample = csvText.slice(0, 3000);
   const matchCount = (regex: RegExp) => (sample.match(regex) || []).length;
 
+  const resolveEur = (): SupportedLang => {
+    const deCount = matchCount(/[äöüßÄÖÜ]/g);
+    const esCount = matchCount(/[áéíóúñ¿¡ÁÉÍÓÚÑ]/g);
+    const frCount = matchCount(/[àâçèéêëîïôùûüÿÀÂÇÈÉÊËÎÏÔÙÛÜŸ]/g);
+    const maxEur = Math.max(deCount, esCount, frCount);
+    if (maxEur === 0) return 'de';
+    let winners = 0;
+    if (deCount === maxEur) winners++;
+    if (esCount === maxEur) winners++;
+    if (frCount === maxEur) winners++;
+    if (winners > 1) return 'de';
+    if (esCount === maxEur) return 'es';
+    if (frCount === maxEur) return 'fr';
+    return 'de';
+  };
+
+  // 1) 與每個 LANG_CONFIGS[lang].csvHeader 做不分大小寫的精確比對
+  for (const [lang, config] of Object.entries(LANG_CONFIGS)) {
+    if (firstLineClean.toLowerCase() === config.csvHeader.toLowerCase()) {
+      if (lang === 'de' || lang === 'es' || lang === 'fr') {
+        return resolveEur();
+      }
+      return lang as SupportedLang;
+    }
+  }
+
+  // 2) 保留現有 Kana/Kanji→ja、Hangul/Hanja→ko、ThaiScript/Tone→th 關鍵字檢查
+  if (firstLineClean.includes('Kana') || firstLineClean.includes('Kanji')) return 'ja';
+  if (firstLineClean.includes('Hangul') || firstLineClean.includes('Hanja')) return 'ko';
+  if (firstLineClean.includes('ThaiScript') || firstLineClean.includes('Tone')) return 'th';
+
+  // 3) 把 hasGender 分支移到 hasStandard9 之前
+  if (/Gender/i.test(firstLineClean)) {
+    return resolveEur();
+  }
+
+  // 4) hasStandard9（IPA+POS+Context_Type）判 'en' 保留，但僅在無 Gender 時觸發。
+  const hasStandard9 = firstLineClean.includes('IPA') && firstLineClean.includes('POS') && firstLineClean.includes('Context_Type');
+  if (hasStandard9) return 'en';
+
+  // 5) 內容頻率階段（泰/韓/日/歐語重音）原樣保留
   if (matchCount(/[\u0E00-\u0E7F]/g) > 2) return 'th';
   if (matchCount(/[\uAC00-\uD7AF\u1100-\u11FF]/g) > 2) return 'ko';
   if (matchCount(/[\u3040-\u309F\u30A0-\u30FF]/g) > 2) return 'ja';
@@ -762,7 +791,7 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
 };
 
-export type SecondaryLang = 'zh' | 'jp' | 'ko' | 'de' | 'es' | 'fr' | 'th';
+export type SecondaryLang = 'zh' | 'ja' | 'ko' | 'de' | 'es' | 'fr' | 'th';
 
 /**
  * Detect secondary language from a text sample.
@@ -774,7 +803,7 @@ export function detectSecondaryLang(text: string): SecondaryLang | undefined {
   // CJK Unified Ideographs (Chinese)
   if (/[\u4e00-\u9fff]/.test(text)) return 'zh';
   // Hiragana or Katakana (Japanese)
-  if (/[\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'jp';
+  if (/[\u3040-\u309f\u30a0-\u30ff]/.test(text)) return 'ja';
   // Hangul (Korean)
   if (/[\uac00-\ud7af\u1100-\u11ff]/.test(text)) return 'ko';
   // Thai script

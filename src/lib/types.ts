@@ -28,7 +28,7 @@ export interface Card {
   ipa?: string;
   pos?: string;
   definition?: string;
-  definitionLang?: string; // secondary language code, e.g. 'zh' | 'jp' | 'ko' | 'de' | 'es' | 'fr' | 'th'; undefined = monolingual
+  definitionLang?: string; // secondary language code, e.g. 'zh' | 'ja' | 'ko' | 'de' | 'es' | 'fr' | 'th'; undefined = monolingual
   example?: string;
   collocations?: string;
   context_type?: string;

@@ -22,8 +22,12 @@ export function parseCSV(
       const detectedLang = detectLanguageFromCSV(csvText);
 
       Papa.parse(csvText, {
-        skipEmptyLines: true,
+        skipEmptyLines: 'greedy',
         complete: (results) => {
+          if (results.errors?.length > 0 && results.data.length === 0) {
+            reject(new Error('CSV 解析失敗: ' + results.errors[0].message));
+            return;
+          }
           const parsedCards: Card[] = [];
           let skippedCount = 0;
 
@@ -68,81 +72,126 @@ export function parseCSV(
               }
             } else if (detectedLang === 'ja') {
               // Japanese: word, kana, kanji, romaji, pos, conjugations, definition, example, context_type
-              card = {
-                ...baseCard(deckId, groupName, i),
-                front,
-                ipa: getCol(1),       // kana mapped to ipa
-                kanji: getCol(2),          // kanji
-                romaji: getCol(3),         // romaji
-                pos: getCol(4),
-                inflections: getCol(5),     // conjugations mapped to inflections
-                definition: getCol(6),
-                example: getCol(7),
-                context_type: getCol(8),
-                back: getCol(6) + '\n' + getCol(7),
-              };
+              if (row.length < 8) {
+                card = buildMinCard(row, deckId, groupName, i);
+              } else {
+                const rawDef = getCol(6);
+                const { secondary, isBilingual } = parseDefinitionBilingual(rawDef);
+                const definitionLang = isBilingual && secondary ? detectSecondaryLang(secondary) : undefined;
+                card = {
+                  ...baseCard(deckId, groupName, i),
+                  front,
+                  ipa: getCol(1),       // kana mapped to ipa
+                  kanji: getCol(2),          // kanji
+                  romaji: getCol(3),         // romaji
+                  pos: getCol(4),
+                  inflections: getCol(5),     // conjugations mapped to inflections
+                  definition: rawDef,
+                  definitionLang,
+                  example: getCol(7),
+                  context_type: getCol(8),
+                  back: rawDef + '\n' + getCol(7),
+                };
+              }
             } else if (detectedLang === 'ko') {
               // Korean: word, hangul, hanja, romanization, pos, conjugations, definition, example, context_type
-              card = {
-                ...baseCard(deckId, groupName, i),
-                front,
-                ipa: getCol(1),       // hangul mapped to ipa
-                hanja: getCol(2),
-                romaji: getCol(3),         // romanization
-                pos: getCol(4),
-                inflections: getCol(5),
-                definition: getCol(6),
-                example: getCol(7),
-                context_type: getCol(8),
-                back: getCol(6) + '\n' + getCol(7),
-              };
+              if (row.length < 8) {
+                card = buildMinCard(row, deckId, groupName, i);
+              } else {
+                const rawDef = getCol(6);
+                const { secondary, isBilingual } = parseDefinitionBilingual(rawDef);
+                const definitionLang = isBilingual && secondary ? detectSecondaryLang(secondary) : undefined;
+                card = {
+                  ...baseCard(deckId, groupName, i),
+                  front,
+                  ipa: getCol(1),       // hangul mapped to ipa
+                  hanja: getCol(2),
+                  romaji: getCol(3),         // romanization
+                  pos: getCol(4),
+                  inflections: getCol(5),
+                  definition: rawDef,
+                  definitionLang,
+                  example: getCol(7),
+                  context_type: getCol(8),
+                  back: rawDef + '\n' + getCol(7),
+                };
+              }
             } else if (detectedLang === 'de') {
               // German: word, ipa, gender, pos, inflections, derivatives, definition, example, context_type
-              card = {
-                ...baseCard(deckId, groupName, i),
-                front,
-                ipa: getCol(1),
-                gender: getCol(2),
-                pos: getCol(3),
-                inflections: getCol(4),     // declension
-                derivatives: getCol(5),
-                definition: getCol(6),
-                example: getCol(7),
-                context_type: getCol(8),
-                back: getCol(6) + '\n' + getCol(7),
-              };
+              if (row.length < 8) {
+                card = buildMinCard(row, deckId, groupName, i);
+              } else {
+                const rawDef = getCol(6);
+                const { secondary, isBilingual } = parseDefinitionBilingual(rawDef);
+                const definitionLang = isBilingual && secondary ? detectSecondaryLang(secondary) : undefined;
+                card = {
+                  ...baseCard(deckId, groupName, i),
+                  front,
+                  ipa: getCol(1),
+                  gender: getCol(2),
+                  pos: getCol(3),
+                  inflections: getCol(4),     // declension
+                  derivatives: getCol(5),
+                  definition: rawDef,
+                  definitionLang,
+                  example: getCol(7),
+                  context_type: getCol(8),
+                  back: rawDef + '\n' + getCol(7),
+                };
+              }
             } else if (detectedLang === 'es' || detectedLang === 'fr') {
               // Spanish/French: word, ipa, gender, pos, inflections, derivatives, definition, example, context_type
-              card = {
-                ...baseCard(deckId, groupName, i),
-                front,
-                ipa: getCol(1),
-                gender: getCol(2),
-                pos: getCol(3),
-                inflections: getCol(4),
-                derivatives: getCol(5),
-                definition: getCol(6),
-                example: getCol(7),
-                context_type: getCol(8),
-                back: getCol(6) + '\n' + getCol(7),
-              };
+              if (row.length < 8) {
+                card = buildMinCard(row, deckId, groupName, i);
+              } else {
+                const rawDef = getCol(6);
+                const { secondary, isBilingual } = parseDefinitionBilingual(rawDef);
+                const definitionLang = isBilingual && secondary ? detectSecondaryLang(secondary) : undefined;
+                card = {
+                  ...baseCard(deckId, groupName, i),
+                  front,
+                  ipa: getCol(1),
+                  gender: getCol(2),
+                  pos: getCol(3),
+                  inflections: getCol(4),
+                  derivatives: getCol(5),
+                  definition: rawDef,
+                  definitionLang,
+                  example: getCol(7),
+                  context_type: getCol(8),
+                  back: rawDef + '\n' + getCol(7),
+                };
+              }
             } else if (detectedLang === 'th') {
               // Thai: word, thai-script, romanization, tone, pos, definition, example, collocations, context_type
-              card = {
-                ...baseCard(deckId, groupName, i),
-                front,
-                ipa: getCol(1),       // thai script
-                romaji: getCol(2),         // romanization
-                tone: getCol(3),
-                pos: getCol(4),
-                definition: getCol(5),
-                example: getCol(6),
-                collocations: getCol(7),
-                context_type: getCol(8),
-                back: getCol(5) + '\n' + getCol(6),
-              };
+              if (row.length < 8) {
+                card = buildMinCard(row, deckId, groupName, i);
+              } else {
+                const rawDef = getCol(5);
+                const { secondary, isBilingual } = parseDefinitionBilingual(rawDef);
+                const definitionLang = isBilingual && secondary ? detectSecondaryLang(secondary) : undefined;
+                card = {
+                  ...baseCard(deckId, groupName, i),
+                  front,
+                  ipa: getCol(1),       // thai script
+                  romaji: getCol(2),         // romanization
+                  tone: getCol(3),
+                  pos: getCol(4),
+                  definition: rawDef,
+                  definitionLang,
+                  example: getCol(6),
+                  collocations: getCol(7),
+                  context_type: getCol(8),
+                  back: rawDef + '\n' + getCol(6),
+                };
+              }
             } else {
               card = buildMinCard(row, deckId, groupName, i);
+            }
+
+            if (!validateCard(card.front, card.back)) {
+              skippedCount++;
+              continue;
             }
 
             parsedCards.push(card);
