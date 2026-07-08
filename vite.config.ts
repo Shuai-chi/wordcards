@@ -8,18 +8,23 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        cleanupOutdatedCaches: true
+      },
       manifest: {
-        name: 'WordForge',
+        name: 'WordForge - Vocabulary SRS',
         short_name: 'WordForge',
         description: 'Advanced Spaced Repetition System for Language Learning',
-        theme_color: '#ffffff',
+        theme_color: '#112240',
+        background_color: '#0a192f',
+        start_url: './',
+        scope: './',
+        display: 'standalone',
+        orientation: 'any',
         icons: [
-          {
-            src: '/favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          }
+          { src: 'pwa-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'pwa-512.png', sizes: '512x512', type: 'image/png' },
+          { src: 'apple-touch-icon.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       }
     })
