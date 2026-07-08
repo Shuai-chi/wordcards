@@ -30,7 +30,7 @@ export default function SettingsModal({ currentLimit, defLangPref, strings, onSa
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
+      <div role="dialog" aria-modal="true" className="modal-panel animate-modal-in" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-bold mb-5" style={{ letterSpacing: '-0.01em' }}>
           {strings.globalSettings}
         </h2>

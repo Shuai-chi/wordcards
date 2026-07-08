@@ -186,8 +186,10 @@ export default function Dashboard({
     if (confirm(t(strings, 'confirmBulkDelete', { n: selectedDeckIds.size }))) {
       if (selectedDeckIds.size > 0) {
         const ids = Array.from(selectedDeckIds);
-        for (let i = 0; i < ids.length - 1; i++) await DB.deleteDeck(ids[i]);
-        onDeleteDeck(ids[ids.length - 1]);
+        for (const id of ids) {
+          await DB.deleteDeck(id);
+        }
+        onDeleteDeck('');
         setSelectedDeckIds(new Set());
       }
     }
@@ -413,6 +415,15 @@ export default function Dashboard({
             return (
               <div
                 key={d.id}
+                role="checkbox"
+                aria-checked={isSelected}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.code === 'Space' || e.code === 'Enter' || e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    toggleDeck(d.id);
+                  }
+                }}
                 className="card-container p-4 flex items-center gap-3 cursor-pointer transition-all duration-150"
                 style={{
                   borderColor: isSelected ? 'var(--primary)' : undefined,

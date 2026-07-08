@@ -53,7 +53,7 @@ function formatTagsInText(
         return (
           <span key={i}>
             {subParts.map((sub, j) => {
-              if (wordRegex && wordRegex.test(sub)) {
+              if (j % 2 === 1 && sub) {
                 return (
                   <mark key={j} className="bg-transparent font-bold px-0.5"
                     style={{
@@ -84,10 +84,17 @@ function getTTSLang(deckLang?: string): string {
 
 function useTTS() {
   const [audioError, setAudioError] = useState(false);
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    window.speechSynthesis?.cancel();
+  }, []);
 
   const speak = useCallback((text: string, lang: string) => {
     if (!('speechSynthesis' in window)) return;
     setAudioError(false);
+    if (timerRef.current) clearTimeout(timerRef.current);
     window.speechSynthesis.cancel();
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
@@ -100,8 +107,7 @@ function useTTS() {
         voices.find(v => v.lang === lang && v.name.includes('Natural')) ||
         voices.find(v => v.lang === lang && v.name.includes('Online')) ||
         voices.find(v => v.lang === lang && v.name.includes('Google')) ||
-        voices.find(v => v.lang.startsWith(lang.split('-')[0])) ||
-        voices.find(v => v.lang.startsWith('en'));
+        voices.find(v => v.lang.startsWith(lang.split('-')[0]));
 
       if (preferredVoice) utterance.voice = preferredVoice;
       utterance.lang = lang;
@@ -117,7 +123,7 @@ function useTTS() {
       const wakeUp = new SpeechSynthesisUtterance('');
       wakeUp.volume = 0;
       window.speechSynthesis.speak(wakeUp);
-      setTimeout(executeSpeak, 500);
+      timerRef.current = window.setTimeout(executeSpeak, 500);
     }
   }, []);
 
@@ -383,7 +389,7 @@ function DefinitionBlock({ card, deckLang, uiLang, defLangPref }: DefinitionBloc
         mode = 'bilingual';
       } else {
         // 'user' mode
-        mode = (uiLang === secondaryLang) ? 'secondary' : 'bilingual';
+        mode = (uiLang.split('-')[0] === secondaryLang) ? 'secondary' : 'bilingual';
       }
     }
     setDisplayMode(mode);
@@ -559,7 +565,7 @@ function DerivativesBlock({ card }: { card: Card }) {
 interface Props {
   queue: Card[];
   setQueue: React.Dispatch<React.SetStateAction<Card[]>>;
-  seenIds: Set<string>;
+  onCardSeen: (id: string) => void;
   strings: UIStrings;
   decks: Deck[];
   onFinish: () => void;
@@ -567,7 +573,7 @@ interface Props {
   defLangPref: 'deck' | 'user' | 'bilingual';
 }
 
-export default function LearningView({ queue, setQueue, seenIds, strings, decks, onFinish, uiLang, defLangPref }: Props) {
+export default function LearningView({ queue, setQueue, onCardSeen, strings, decks, onFinish, uiLang, defLangPref }: Props) {
   const [currentCard, setCurrentCard] = useState<Card | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [totalInitial] = useState(queue.length);
@@ -600,7 +606,7 @@ export default function LearningView({ queue, setQueue, seenIds, strings, decks,
     const isFirstTouchToday = currentCard.lastReviewedDate !== getTodayStr();
     const previousRating = currentCard.todayRating;
 
-    seenIds.add(currentCard.id);
+    onCardSeen(currentCard.id);
     const updatedCard = updateSRS(currentCard, btnIndex);
     updatedCard.todayRating = ratingKey;
 
@@ -615,11 +621,17 @@ export default function LearningView({ queue, setQueue, seenIds, strings, decks,
     setCurrentCard(null);
     window.speechSynthesis.cancel();
 
-    await DB.commitReview(updatedCard, getTodayStr(), ratingKey, isFirstTouchToday, previousRating);
-    isRatingRef.current = false;
+    try {
+      await DB.commitReview(updatedCard, getTodayStr(), ratingKey, isFirstTouchToday, previousRating);
+    } catch (err) {
+      console.error(err);
+      alert('儲存失敗: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      isRatingRef.current = false;
+    }
 
     if (newQueue.length === 0) onFinish();
-  }, [currentCard, showAnswer, queue, seenIds, onFinish, setQueue]);
+  }, [currentCard, showAnswer, queue, onCardSeen, onFinish, setQueue]);
 
   const handleRateRef = useRef(handleRate);
   useEffect(() => { handleRateRef.current = handleRate; }, [handleRate]);
@@ -665,6 +677,15 @@ export default function LearningView({ queue, setQueue, seenIds, strings, decks,
 
       {/* ── Flashcard ── */}
       <div
+        role="button"
+        tabIndex={0}
+        aria-label={strings.tapToFlip}
+        onKeyDown={(e) => {
+          if (!showAnswer && (e.code === 'Space' || e.code === 'Enter' || e.key === ' ' || e.key === 'Enter')) {
+            e.preventDefault();
+            setShowAnswer(true);
+          }
+        }}
         className="flex-1 card-container p-6 md:p-10 flex flex-col overflow-y-auto relative cursor-pointer"
         style={{ borderRadius: '1.5rem' }}
         onClick={() => !showAnswer && setShowAnswer(true)}

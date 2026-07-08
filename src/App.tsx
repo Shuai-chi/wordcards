@@ -41,6 +41,7 @@ function App() {
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const langMenuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toastTimerRef = useRef<number | null>(null);
 
   // Theme
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -86,8 +87,9 @@ function App() {
   };
 
   const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
+    toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3000);
   };
 
   const loadData = async () => {
@@ -122,8 +124,10 @@ function App() {
         deckName = deckName.replace(groupMatch[0], '').trim();
       }
 
+      let deckInserted = false;
+      let deckId = '';
       try {
-        const deckId = 'deck-' + Date.now() + '-' + i;
+        deckId = 'deck-' + Date.now() + '-' + i;
         const { cards, skipped, detectedLang } = await parseCSV(file, deckId, groupName);
 
         const newLimit = Math.min(20, cards.length);
@@ -136,6 +140,7 @@ function App() {
         };
 
         await DB.putDeck(newDeck);
+        deckInserted = true;
         await DB.putCards(cards);
         successCount++;
 
@@ -143,6 +148,9 @@ function App() {
           showToast(t(strings, 'skippedCards', { deck: deckName, n: skipped }));
         }
       } catch (err: unknown) {
+        if (deckInserted && deckId) {
+          await DB.deleteDeck(deckId);
+        }
         alert(`${t(strings, 'importFailed')}: ${file.name} — ${err instanceof Error ? err.message : String(err)}`);
       }
     }
@@ -304,7 +312,7 @@ function App() {
           <LearningView
             queue={sessionQueue}
             setQueue={setSessionQueue}
-            seenIds={seenCardIds}
+            onCardSeen={(id) => setSeenCardIds(prev => { const s = new Set(prev); s.add(id); return s; })}
             strings={strings}
             decks={decks}
             onFinish={() => setView('finished')}
