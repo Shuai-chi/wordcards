@@ -1,4 +1,4 @@
-# WordForge 資料規格 (Data Specification v1.0)
+# WordForge 資料規格 (Data Specification v1.1)
 
 本文件定義 WordForge Web App 匯入 CSV 的欄位格式與 SRS 排程演算法,是 App 解析邏輯 (`src/lib/csv.ts`、`src/lib/srs.ts`) 的事實對照來源。
 
@@ -10,7 +10,7 @@
 - **分隔符**:逗號 `,`。
 - **包裹**:建議所有欄位以雙引號 `"` 包裹;欄位內若需引號,改用單引號 `'`。
 - **無換行**:單一欄位內不得含換行字元。
-- **標題列**:第一列為欄位名;App 會自動偵測並略過(判斷依據:首欄含 `word`/`単語`/`단어` 等關鍵字)。
+- **標題列**:第一列為欄位名;App 會自動偵測並略過(判斷依據:首欄含 `word`/`単語`/`단어` 等關鍵字;片語格式另見 §3)。
 
 ---
 
@@ -22,10 +22,10 @@
 |:--:|:-----------|:--:|:-----|
 | 1 | `word` | ✅ | 頭詞(headword),標題式首字母大寫,最小獨立語義單位 |
 | 2 | `ipa` | ✅ | 標準 IPA 音標,例 `/dɪˈskriːt/` |
-| 3 | `pos` | ✅ | 詞性(小寫帶點),見 §3 |
-| 4 | `inflections` | | 屈折變化,依詞性呈現,見 §3 |
+| 3 | `pos` | ✅ | 詞性(小寫帶點),見 §4 |
+| 4 | `inflections` | | 屈折變化,依詞性呈現,見 §4 |
 | 5 | `derivatives` | | 衍生詞 `token (pos.)`,逗號分隔;無則填 `None` |
-| 6 | `definition` | ✅ | 定義,5–300 bytes,見 §4 |
+| 6 | `definition` | ✅ | 定義,5–300 bytes,見 §5 |
 | 7 | `example` | ✅ | 例句,30–200 bytes,須含頭詞或其變化形 |
 | 8 | `collocations` | | 搭配詞,**恰好 3 項**,以 `; ` 分隔 |
 | 9 | `context_type` | | CEFR 等級:`A1` / `A2` / `B1` / `B2` / `C1` / `C2` |
@@ -42,7 +42,37 @@
 
 ---
 
-## 3. 詞性與屈折規則 (POS & Inflections)
+## 3. 片語 CSV 格式
+
+片語牌組固定使用 5 欄格式,其中前 4 欄必填。片語牌組**必須包含標題列**。
+
+| # | 欄位 (key) | 必填 | 說明 |
+|:--:|:-----------|:--:|:-----|
+| 1 | `phrase` | ✅ | 英文片語;首字母大寫 |
+| 2 | `definition` | ✅ | 片語解釋;支援 §5 的純中文、純英文或 `英文｜中文` 雙語格式 |
+| 3 | `example` | ✅ | 自然英文例句,須含該片語或其屈折形 |
+| 4 | `example_translation` | ✅ | 例句翻譯 |
+| 5 | `context_type` | | CEFR 等級:`A1` / `A2` / `B1` / `B2` / `C1` / `C2` |
+
+> 標題列範例:
+> `"phrase","definition","example","example_translation","context_type"`
+
+### 偵測規則
+
+- App 將首列視為標題列;首欄去除大小寫差異後只要含 `phrase`,即判定為片語牌組並略過該列。
+- 片語牌組沿用現有語言偵測,英文片語預期辨識為 `en`。
+- 無標題列或首欄不含 `phrase` 時,一律走既有單字牌組解析流程,不會自動猜測為片語。
+- 資料列少於 4 欄、片語為空或內容未通過基本驗證時,該列會被略過並計入匯入提示。
+
+### 範例資料列
+
+```csv
+"On the fence","猶豫不決的;尚未決定的","I'm still on the fence about whether to accept the job offer.","我對於是否接受這份工作邀約仍猶豫不決。","B2"
+```
+
+---
+
+## 4. 詞性與屈折規則 (POS & Inflections)
 
 `pos` 允許值:`n.`、`n. [U]`(不可數)、`v.`、`adj.`、`adv.`、`prep.`、`conj.`、`phr. v.`。
 不可數標記 `[U]` 寫在 `pos` 欄(如 `n. [U]`),**不是**寫在 `inflections`。
@@ -63,7 +93,7 @@
 
 ---
 
-## 4. 定義格式 (Definition)
+## 5. 定義格式 (Definition)
 
 `definition` 支援三種模式:
 
@@ -79,7 +109,7 @@
 
 ---
 
-## 5. SRS 排程演算法 (改進型 SM-2)
+## 6. SRS 排程演算法 (改進型 SM-2)
 
 對應 `src/lib/srs.ts`。每張卡片初始:`easeFactor = 2.5`、`interval = 0`、`state = 'new'`。
 `interval` 單位為**天**(四捨五入);卡片狀態:`new` → `learning` / `relearning` → `graduated`。

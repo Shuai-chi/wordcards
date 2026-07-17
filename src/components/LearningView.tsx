@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-import type { Card } from '../lib/types';
+import type { Card, DeckType } from '../lib/types';
 import type { UIStrings, SupportedLang } from '../lib/languages';
 import { LANG_CONFIGS, detectSecondaryLang } from '../lib/languages';
 import { updateSRS } from '../lib/srs';
@@ -150,13 +150,34 @@ function PhoneticBadge({ ipa }: { ipa?: string }) {
 
 interface CardFieldsProps {
   card: Card;
+  deckType: DeckType;
   deckLang: string;
   uiLang: string;
   defLangPref: 'deck' | 'user' | 'bilingual';
+  strings: UIStrings;
 }
 
-function CardAnswerFields({ card, deckLang, uiLang, defLangPref }: CardFieldsProps) {
+function CardAnswerFields({ card, deckType, deckLang, uiLang, defLangPref, strings }: CardFieldsProps) {
   const lang = (deckLang || 'en') as SupportedLang;
+
+  if (deckType === 'phrase') {
+    return (
+      <div className="space-y-6 animate-answer-in">
+        {card.example && <ExampleBlock card={card} deckLang={deckLang} />}
+        <DefinitionBlock card={card} deckLang={deckLang} uiLang={uiLang} defLangPref={defLangPref} />
+        {card.exampleTranslation && (
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
+              {strings.exampleTranslationLabel}
+            </div>
+            <div className="text-base md:text-lg font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
+              {card.exampleTranslation}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   // Japanese fields
   if (lang === 'ja') {
@@ -581,9 +602,9 @@ export default function LearningView({ queue, setQueue, onCardSeen, strings, dec
   const isRatingRef = useRef(false);
 
   // Resolve deck language for current card
-  const deckLang = currentCard
-    ? (decks.find(d => d.id === currentCard.deckId)?.language ?? 'en')
-    : 'en';
+  const currentDeck = currentCard ? decks.find(d => d.id === currentCard.deckId) : undefined;
+  const deckLang = currentDeck?.language ?? 'en';
+  const deckType = currentDeck?.deckType ?? 'vocab';
   const ttsLang = getTTSLang(deckLang);
   const langCfg = LANG_CONFIGS[deckLang as SupportedLang];
 
@@ -754,7 +775,14 @@ export default function LearningView({ queue, setQueue, onCardSeen, strings, dec
           {/* Answer */}
           {showAnswer && (
             <div className="mt-8 pt-8 border-t flex flex-col gap-6 px-4 md:px-8" style={{ borderColor: 'var(--border)' }}>
-              <CardAnswerFields card={currentCard} deckLang={deckLang} uiLang={uiLang} defLangPref={defLangPref} />
+              <CardAnswerFields
+                card={currentCard}
+                deckType={deckType}
+                deckLang={deckLang}
+                uiLang={uiLang}
+                defLangPref={defLangPref}
+                strings={strings}
+              />
             </div>
           )}
         </div>

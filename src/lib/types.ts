@@ -1,9 +1,12 @@
+export type DeckType = 'vocab' | 'phrase';
+
 export interface Deck {
   id: string;
   name: string;
   newCardLimit?: number;
   cardCount?: number;
   language?: string; // SupportedLang code, e.g. 'en' | 'ja' | 'ko' ...
+  deckType?: DeckType;
 }
 
 export type CardState = 'new' | 'learning' | 'relearning' | 'graduated';
@@ -30,6 +33,7 @@ export interface Card {
   definition?: string;
   definitionLang?: string; // secondary language code, e.g. 'zh' | 'ja' | 'ko' | 'de' | 'es' | 'fr' | 'th'; undefined = monolingual
   example?: string;
+  exampleTranslation?: string;
   collocations?: string;
   context_type?: string;
   // Language-specific extra fields

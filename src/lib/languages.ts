@@ -258,6 +258,13 @@ export type UILang = 'zh-TW' | 'en' | 'ja' | 'ko' | 'de' | 'es' | 'fr' | 'th';
 
 export interface UIStrings {
   appName: string;
+  homeTitle: string;
+  modeVocab: string;
+  modeVocabDesc: string;
+  modePhrase: string;
+  modePhraseDesc: string;
+  exampleTranslationLabel: string;
+  deckCountLabel: string;
   dashboard: string;
   learningCenter: string;
   todayPracticed: string;
@@ -319,6 +326,13 @@ export interface UIStrings {
 export const UI_STRINGS: Record<UILang, UIStrings> = {
   'zh-TW': {
     appName: 'WordForge',
+    homeTitle: '今天想練什麼？',
+    modeVocab: '背單字',
+    modeVocabDesc: '單字・音標・詞性・搭配詞',
+    modePhrase: '片語',
+    modePhraseDesc: '片語・例句・中文解釋',
+    exampleTranslationLabel: '例句翻譯',
+    deckCountLabel: '{n} 個牌組',
     dashboard: '學習中心',
     learningCenter: '學習中心',
     todayPracticed: '今日已練習',
@@ -378,6 +392,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   en: {
     appName: 'WordForge',
+    homeTitle: 'What would you like to practice today?',
+    modeVocab: 'Vocabulary',
+    modeVocabDesc: 'Words · phonetics · parts of speech · collocations',
+    modePhrase: 'Phrases',
+    modePhraseDesc: 'Phrases · examples · definitions',
+    exampleTranslationLabel: 'Example translation',
+    deckCountLabel: 'Decks: {n}',
     dashboard: 'Learning Center',
     learningCenter: 'Learning Center',
     todayPracticed: 'Practiced Today',
@@ -437,6 +458,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   ja: {
     appName: 'WordForge',
+    homeTitle: '今日は何を練習しますか？',
+    modeVocab: '単語',
+    modeVocabDesc: '単語・発音記号・品詞・コロケーション',
+    modePhrase: 'フレーズ',
+    modePhraseDesc: 'フレーズ・例文・意味',
+    exampleTranslationLabel: '例文の訳',
+    deckCountLabel: 'デッキ数：{n}',
     dashboard: '学習センター',
     learningCenter: '学習センター',
     todayPracticed: '本日練習済み',
@@ -496,6 +524,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   ko: {
     appName: 'WordForge',
+    homeTitle: '오늘은 무엇을 연습할까요?',
+    modeVocab: '단어',
+    modeVocabDesc: '단어 · 발음 기호 · 품사 · 연어',
+    modePhrase: '표현',
+    modePhraseDesc: '표현 · 예문 · 뜻',
+    exampleTranslationLabel: '예문 번역',
+    deckCountLabel: '덱 {n}개',
     dashboard: '학습 센터',
     learningCenter: '학습 센터',
     todayPracticed: '오늘 학습',
@@ -555,6 +590,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   de: {
     appName: 'WordForge',
+    homeTitle: 'Was möchtest du heute üben?',
+    modeVocab: 'Vokabeln',
+    modeVocabDesc: 'Wörter · Lautschrift · Wortarten · Kollokationen',
+    modePhrase: 'Wendungen',
+    modePhraseDesc: 'Wendungen · Beispielsätze · Bedeutungen',
+    exampleTranslationLabel: 'Übersetzung des Beispielsatzes',
+    deckCountLabel: 'Decks: {n}',
     dashboard: 'Lernzentrum',
     learningCenter: 'Lernzentrum',
     todayPracticed: 'Heute geübt',
@@ -614,6 +656,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   es: {
     appName: 'WordForge',
+    homeTitle: '¿Qué quieres practicar hoy?',
+    modeVocab: 'Vocabulario',
+    modeVocabDesc: 'Palabras · fonética · categorías gramaticales · colocaciones',
+    modePhrase: 'Expresiones',
+    modePhraseDesc: 'Expresiones · ejemplos · significados',
+    exampleTranslationLabel: 'Traducción del ejemplo',
+    deckCountLabel: 'Mazos: {n}',
     dashboard: 'Centro de aprendizaje',
     learningCenter: 'Centro de aprendizaje',
     todayPracticed: 'Practicado hoy',
@@ -673,6 +722,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   fr: {
     appName: 'WordForge',
+    homeTitle: "Que souhaitez-vous réviser aujourd'hui ?",
+    modeVocab: 'Vocabulaire',
+    modeVocabDesc: 'Mots · phonétique · catégories grammaticales · collocations',
+    modePhrase: 'Expressions',
+    modePhraseDesc: 'Expressions · exemples · définitions',
+    exampleTranslationLabel: "Traduction de l'exemple",
+    deckCountLabel: 'Paquets : {n}',
     dashboard: "Centre d'apprentissage",
     learningCenter: "Centre d'apprentissage",
     todayPracticed: "Pratiqué aujourd'hui",
@@ -732,6 +788,13 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
   },
   th: {
     appName: 'WordForge',
+    homeTitle: 'วันนี้อยากฝึกอะไร?',
+    modeVocab: 'คำศัพท์',
+    modeVocabDesc: 'คำศัพท์ · สัทอักษร · ชนิดคำ · คำที่ใช้ร่วมกัน',
+    modePhrase: 'วลี',
+    modePhraseDesc: 'วลี · ประโยคตัวอย่าง · คำอธิบาย',
+    exampleTranslationLabel: 'คำแปลประโยคตัวอย่าง',
+    deckCountLabel: 'ทั้งหมด {n} ชุด',
     dashboard: 'ศูนย์การเรียน',
     learningCenter: 'ศูนย์การเรียน',
     todayPracticed: 'ฝึกวันนี้แล้ว',

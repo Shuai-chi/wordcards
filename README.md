@@ -1,18 +1,19 @@
 # WordForge — 高品質單字學習系統 🚀
 
 [![README](https://img.shields.io/badge/README-English-blue.svg)](./docs/i18n/README-en.md)
-[![Data Spec](https://img.shields.io/badge/Data%20Spec-v1.0-green.svg)](./docs/SPEC.md)
+[![Data Spec](https://img.shields.io/badge/Data%20Spec-v1.1-green.svg)](./docs/SPEC.md)
 [![PWA](https://img.shields.io/badge/PWA-offline%20ready-5a67d8.svg)](#-安裝與存取)
 
 一個為進階學習者設計的極簡單字卡系統,具備精確的 SRS(間隔重複)演算法、多語系介面,以及隱私優先的離線體驗。
 
 ## ✨ 核心功能
+*   **單字／片語雙模式**:入口頁可選擇背單字或練片語;片語卡聚焦英文片語、例句、中文解釋與例句翻譯。
 *   **多語系架構與介面**:支援 8 種介面語言(繁中、英、日、韓、德、西、法、泰),並為各語言提供專屬卡片排版(如日語假名/漢字、德語文法性、泰語聲調)。
 *   **完整語音朗讀 (TTS)**:單字與**例句**皆可朗讀,強化聽力。
 *   **設計系統與深/淺色模式**:採暖石灰(warm stone gray)搭配深赭石琥珀(ochre amber)色系,字型使用 DM Sans 與 DM Mono;支援系統偏好與手動切換。
 *   **漸進式網頁應用 (PWA)**:可安裝到手機與桌面,提供全螢幕、離線的原生體驗。
 *   **隱私與離線 (IndexedDB)**:所有牌組與學習進度僅存於你的瀏覽器本地,無需連線、不上傳任何伺服器。
-*   **高品質 CSV 匯入**:支援符合 [資料規格](./docs/SPEC.md) 的 9 欄位 CSV,並能自動偵測語系。
+*   **高品質 CSV 匯入**:支援符合 [資料規格](./docs/SPEC.md) 的單字 9 欄位與片語 5 欄位 CSV,並能自動偵測語系與牌組類型。
 
 ## 📲 安裝與存取
 
@@ -35,8 +36,9 @@ npm run dev
 ## 🛠️ 使用教學
 
 ### 第一步:準備與匯入
-1.  **取得單字卡**:可直接使用 [`sample-decks/`](./sample-decks) 內的範例牌組(GRE / TOEFL / 高中 CEFR 分級),或依 [資料規格](./docs/SPEC.md) 自行產生 CSV。
-2.  **匯入**:在首頁點右上角的「上傳」圖示並選擇 CSV;系統會自動偵測語系。
+1.  **選擇模式**:在入口頁選擇「背單字」或「片語」,進入對應的學習中心。
+2.  **取得牌組**:可直接使用 [`sample-decks/`](./sample-decks) 內的範例牌組(GRE / TOEFL / 高中 CEFR 分級／日常片語),或依 [資料規格](./docs/SPEC.md) 自行產生 CSV。
+3.  **匯入**:點右上角的「上傳」圖示並選擇 CSV;系統會自動偵測語系與單字／片語類型。
 
 ### 第二步:設定
 1.  **全域每日上限**:在「設定」中設定每日跨所有牌組的新卡上限。

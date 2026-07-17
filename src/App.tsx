@@ -1,17 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { Settings, Upload, BookOpen, Sun, Moon, Globe } from 'lucide-react';
 import Dashboard from './components/Dashboard';
+import Home from './components/Home';
 import LearningView from './components/LearningView';
 import FinishedView from './components/FinishedView';
 import { DB } from './lib/db';
 import { parseCSV } from './lib/csv';
-import type { Deck, Report, Card } from './lib/types';
+import type { Deck, DeckType, Report, Card } from './lib/types';
 import SettingsModal from './components/SettingsModal';
 import EditDeckModal from './components/EditDeckModal';
 import { UI_STRINGS, t } from './lib/languages';
 import type { UILang } from './lib/languages';
 
-export type ViewState = 'dashboard' | 'learning' | 'finished';
+export type ViewState = 'home' | 'dashboard' | 'learning' | 'finished';
 
 function getSystemTheme(): 'light' | 'dark' {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -29,7 +30,8 @@ const UI_LANG_OPTIONS: { code: UILang; label: string; flag: string }[] = [
 ];
 
 function App() {
-  const [view, setView] = useState<ViewState>('dashboard');
+  const [view, setView] = useState<ViewState>('home');
+  const [sectionMode, setSectionMode] = useState<DeckType>('vocab');
   const [decks, setDecks] = useState<Deck[]>([]);
   const [report, setReport] = useState<Report | null>(null);
   const [sessionQueue, setSessionQueue] = useState<Card[]>([]);
@@ -128,7 +130,7 @@ function App() {
       let deckId = '';
       try {
         deckId = 'deck-' + Date.now() + '-' + i;
-        const { cards, skipped, detectedLang } = await parseCSV(file, deckId, groupName);
+        const { cards, skipped, detectedLang, detectedType } = await parseCSV(file, deckId, groupName);
 
         const newLimit = Math.min(20, cards.length);
         const newDeck: Deck = {
@@ -137,6 +139,7 @@ function App() {
           newCardLimit: newLimit,
           cardCount: cards.length,
           language: detectedLang,
+          deckType: detectedType,
         };
 
         await DB.putDeck(newDeck);
@@ -165,6 +168,23 @@ function App() {
 
   const currentUiOption = UI_LANG_OPTIONS.find(o => o.code === uiLang);
 
+  const openSection = (mode: DeckType) => {
+    const allowedDeckIds = new Set(
+      decks.filter(deck => (deck.deckType ?? 'vocab') === mode).map(deck => deck.id)
+    );
+    try {
+      const savedSelection = JSON.parse(localStorage.getItem('srs_selected_decks') ?? '[]') as string[];
+      localStorage.setItem(
+        'srs_selected_decks',
+        JSON.stringify(savedSelection.filter(id => allowedDeckIds.has(id)))
+      );
+    } catch {
+      localStorage.setItem('srs_selected_decks', JSON.stringify([]));
+    }
+    setSectionMode(mode);
+    setView('dashboard');
+  };
+
   return (
     <div className="min-h-screen flex flex-col font-sans" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
 
@@ -182,7 +202,7 @@ function App() {
           {/* Logo */}
           <div
             className="flex items-center gap-2.5 cursor-pointer group select-none"
-            onClick={() => { setView('dashboard'); loadData(); }}
+            onClick={() => { setView('home'); loadData(); }}
           >
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105"
@@ -286,9 +306,17 @@ function App() {
 
       {/* ── Main ── */}
       <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-8">
+        {view === 'home' && (
+          <Home
+            decks={decks}
+            strings={strings}
+            onSelectMode={openSection}
+          />
+        )}
+
         {view === 'dashboard' && (
           <Dashboard
-            decks={decks}
+            decks={decks.filter(d => (d.deckType ?? 'vocab') === sectionMode)}
             report={report}
             globalLimit={globalDailyLimit}
             strings={strings}

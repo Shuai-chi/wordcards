@@ -1,5 +1,5 @@
 import Papa from 'papaparse';
-import type { Card } from './types';
+import type { Card, DeckType } from './types';
 import { detectLanguageFromCSV, detectSecondaryLang, parseDefinitionBilingual } from './languages';
 import type { SupportedLang } from './languages';
 
@@ -13,7 +13,7 @@ export function parseCSV(
   file: File,
   deckId: string,
   groupName: string
-): Promise<{ cards: Card[]; skipped: number; detectedLang: SupportedLang }> {
+): Promise<{ cards: Card[]; skipped: number; detectedLang: SupportedLang; detectedType: DeckType }> {
   return new Promise((resolve, reject) => {
     // First read file as text to detect language
     const reader = new FileReader();
@@ -32,9 +32,12 @@ export function parseCSV(
           let skippedCount = 0;
 
           const headerRow = results.data[0] as string[];
+          const isPhrase = headerRow?.[0]?.toLowerCase().includes('phrase') ?? false;
+          const detectedType: DeckType = isPhrase ? 'phrase' : 'vocab';
           const hasHeader =
             headerRow &&
-            (headerRow[0]?.toLowerCase().includes('word') ||
+            (isPhrase ||
+              headerRow[0]?.toLowerCase().includes('word') ||
               headerRow[0]?.toLowerCase().includes('単語') ||
               headerRow[0]?.toLowerCase().includes('단어') ||
               headerRow[0]?.toLowerCase().includes('wort') ||
@@ -45,6 +48,43 @@ export function parseCSV(
 
           for (let i = startIndex; i < results.data.length; i++) {
             const row = results.data[i] as string[];
+
+            if (detectedType === 'phrase') {
+              if (!row || row.length < 4) {
+                skippedCount++;
+                continue;
+              }
+
+              const front = row[0]?.trim();
+              if (!front) {
+                skippedCount++;
+                continue;
+              }
+
+              const rawDef = row[1]?.trim() || '';
+              const example = row[2]?.trim() || '';
+              const { secondary, isBilingual } = parseDefinitionBilingual(rawDef);
+              const definitionLang = isBilingual && secondary ? detectSecondaryLang(secondary) : undefined;
+              const card: Card = {
+                ...baseCard(deckId, groupName, i),
+                front,
+                definition: rawDef,
+                definitionLang,
+                example,
+                exampleTranslation: row[3]?.trim() || '',
+                context_type: row[4]?.trim() || '',
+                back: rawDef + '\n' + example,
+              };
+
+              if (!validateCard(card.front, card.back)) {
+                skippedCount++;
+                continue;
+              }
+
+              parsedCards.push(card);
+              continue;
+            }
+
             if (!row || row.length < 2) {
               skippedCount++;
               continue;
@@ -197,7 +237,7 @@ export function parseCSV(
             parsedCards.push(card);
           }
 
-          resolve({ cards: parsedCards, skipped: skippedCount, detectedLang });
+          resolve({ cards: parsedCards, skipped: skippedCount, detectedLang, detectedType });
         },
         error: (err: Error) => reject(err),
       });
