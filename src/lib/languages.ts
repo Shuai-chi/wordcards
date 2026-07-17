@@ -840,7 +840,7 @@ export const UI_STRINGS: Record<UILang, UIStrings> = {
     filterLanguage: 'กรองตามภาษา',
     detectingLanguage: 'ตรวจจับภาษา',
     importSuccess: 'นำเข้า {n} ชุดสำเร็จ',
-    importFailed: 'นำเข้าล้ม례ว',
+    importFailed: 'นำเข้าล้มเหลว',
     skippedCards: '{deck}: ข้าม {n} ใบที่ผิดพลาด',
     loadFailed: 'โหลดข้อมูลล้มเหลว',
     uiLanguage: 'ภาษาของอินเทอร์เฟซ',
