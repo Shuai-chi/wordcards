@@ -1,4 +1,11 @@
 import type { Card, Deck, Report, ClicksStats } from './types';
+import type { IconAssetRecord } from './iconAssets';
+
+export interface DatabaseSnapshot {
+  decks: Deck[];
+  cards: Card[];
+  reports: Report[];
+}
 
 function getTodayStr(): string {
   const d = new Date();
@@ -29,7 +36,7 @@ export const DB = {
     if (dbReady) return dbReady;
     dbReady = new Promise((resolve, reject) => {
       try {
-        const request = indexedDB.open('SRS_DB', 1);
+        const request = indexedDB.open('SRS_DB', 2);
         request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
           const _db = (e.target as IDBOpenDBRequest).result;
           if (!_db.objectStoreNames.contains('decks')) {
@@ -41,6 +48,9 @@ export const DB = {
           }
           if (!_db.objectStoreNames.contains('reports')) {
             _db.createObjectStore('reports', { keyPath: 'dateStr' });
+          }
+          if (!_db.objectStoreNames.contains('iconAssets')) {
+            _db.createObjectStore('iconAssets', { keyPath: 'id' });
           }
         };
         request.onsuccess = () => {
@@ -74,6 +84,81 @@ export const DB = {
         const req = tx.objectStore('decks').getAll();
         req.onsuccess = () => resolve(req.result);
         req.onerror = () => reject(req.error || new Error('Failed to get decks'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+  },
+
+  getAllData: async (): Promise<DatabaseSnapshot> => {
+    await DB.init();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db!.transaction(['decks', 'cards', 'reports'], 'readonly');
+        const snapshot: DatabaseSnapshot = { decks: [], cards: [], reports: [] };
+        const decksReq = tx.objectStore('decks').getAll();
+        const cardsReq = tx.objectStore('cards').getAll();
+        const reportsReq = tx.objectStore('reports').getAll();
+        decksReq.onsuccess = () => { snapshot.decks = decksReq.result; };
+        cardsReq.onsuccess = () => { snapshot.cards = cardsReq.result; };
+        reportsReq.onsuccess = () => { snapshot.reports = reportsReq.result; };
+        tx.oncomplete = () => resolve(snapshot);
+        tx.onerror = () => reject(tx.error || new Error('Failed to read backup data'));
+        tx.onabort = () => reject(tx.error || new Error('Backup read transaction aborted'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+  },
+
+  replaceAllData: async (snapshot: DatabaseSnapshot): Promise<void> => {
+    await DB.init();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db!.transaction(['decks', 'cards', 'reports'], 'readwrite');
+        const decks = tx.objectStore('decks');
+        const cards = tx.objectStore('cards');
+        const reports = tx.objectStore('reports');
+        decks.clear();
+        cards.clear();
+        reports.clear();
+        snapshot.decks.forEach(deck => decks.put(deck));
+        snapshot.cards.forEach(card => cards.put(card));
+        snapshot.reports.forEach(report => reports.put(report));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error || new Error('Failed to replace backup data'));
+        tx.onabort = () => reject(tx.error || new Error('Backup replace transaction aborted'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+  },
+
+  getAllIconAssets: async (): Promise<IconAssetRecord[]> => {
+    await DB.init();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db!.transaction('iconAssets', 'readonly');
+        const req = tx.objectStore('iconAssets').getAll();
+        req.onsuccess = () => resolve(req.result as IconAssetRecord[]);
+        req.onerror = () => reject(req.error || new Error('Failed to get icon assets'));
+      } catch (err) {
+        reject(err);
+      }
+    });
+  },
+
+  replaceAllIconAssets: async (records: IconAssetRecord[]): Promise<void> => {
+    await DB.init();
+    return new Promise((resolve, reject) => {
+      try {
+        const tx = db!.transaction('iconAssets', 'readwrite');
+        const store = tx.objectStore('iconAssets');
+        store.clear();
+        records.forEach(record => store.put(record));
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error || new Error('Failed to replace icon assets'));
+        tx.onabort = () => reject(tx.error || new Error('Icon asset transaction aborted'));
       } catch (err) {
         reject(err);
       }
