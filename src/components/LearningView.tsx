@@ -6,6 +6,7 @@ import { updateSRS } from '../lib/srs';
 import { DB, getTodayStr } from '../lib/db';
 import { Volume2, Hash, Layers, Quote, Link2 } from 'lucide-react';
 import type { Deck } from '../lib/types';
+import { BrowserSpeechEngine } from '../lib/speechEngine';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -84,57 +85,53 @@ function getTTSLang(deckLang?: string): string {
 
 function useTTS() {
   const [audioError, setAudioError] = useState(false);
-  const timerRef = useRef<number | null>(null);
-
-  useEffect(() => () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    window.speechSynthesis?.cancel();
-  }, []);
+  const engineRef = useRef<BrowserSpeechEngine | null>(null);
 
   const speak = useCallback((text: string, lang: string) => {
-    if (!('speechSynthesis' in window)) return;
-    setAudioError(false);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    window.speechSynthesis.cancel();
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-    const executeSpeak = () => {
-      const utterance = new SpeechSynthesisUtterance(isMobile ? text : ' ' + text);
-      const voices = window.speechSynthesis.getVoices();
-
-      // Try to find a voice matching the target language
-      const preferredVoice =
-        voices.find(v => v.lang === lang && v.name.includes('Natural')) ||
-        voices.find(v => v.lang === lang && v.name.includes('Online')) ||
-        voices.find(v => v.lang === lang && v.name.includes('Google')) ||
-        voices.find(v => v.lang.startsWith(lang.split('-')[0]));
-
-      if (preferredVoice) utterance.voice = preferredVoice;
-      utterance.lang = lang;
-      utterance.rate = 0.85;
-      utterance.pitch = 1.0;
-      utterance.onerror = () => setAudioError(true);
-      window.speechSynthesis.speak(utterance);
-    };
-
-    if (isMobile) {
-      executeSpeak();
-    } else {
-      const wakeUp = new SpeechSynthesisUtterance('');
-      wakeUp.volume = 0;
-      window.speechSynthesis.speak(wakeUp);
-      timerRef.current = window.setTimeout(executeSpeak, 500);
+    const engine = engineRef.current;
+    if (!engine?.isSupported()) {
+      setAudioError(true);
+      return;
     }
+    setAudioError(false);
+    engine.cancel();
+    const speakAttempt = (fallbackAttempt: 0 | 1) => {
+      engine.speak({
+        text,
+        lang,
+        rate: 0.85,
+        preferredVoice: null,
+        fallbackAttempt,
+      }, {
+        onEnd: () => undefined,
+        onError: () => {
+          if (fallbackAttempt === 0) speakAttempt(1);
+          else setAudioError(true);
+        },
+      });
+    };
+    speakAttempt(0);
   }, []);
 
-  return { speak, audioError };
+  const cancel = useCallback(() => engineRef.current?.cancel(), []);
+
+  useEffect(() => {
+    const engine = new BrowserSpeechEngine();
+    engineRef.current = engine;
+    return () => {
+      engine.dispose();
+      if (engineRef.current === engine) engineRef.current = null;
+    };
+  }, []);
+
+  return { speak, audioError, cancel };
 }
 
 function PhoneticBadge({ ipa }: { ipa?: string }) {
   if (!ipa) return null;
   // IPA 音標必須用 tracking-normal (甚至 tracking-wide), 否則 ɪ ɛ æ ʊ ə 等窄字符會貼成糊團.
   return (
-    <span className="font-mono text-xs md:text-sm font-bold px-2 py-0.5 rounded-lg align-middle"
+    <span className="study-answer-meta font-mono font-bold px-2 py-0.5 rounded-lg align-middle"
       style={{
         background: 'color-mix(in srgb, var(--primary) 20%, transparent)',
         border: '1px solid color-mix(in srgb, var(--primary) 45%, transparent)',
@@ -170,7 +167,7 @@ function CardAnswerFields({ card, deckType, deckLang, uiLang, defLangPref, strin
             <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--muted)' }}>
               {strings.exampleTranslationLabel}
             </div>
-            <div className="text-base md:text-lg font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
+            <div className="study-answer-secondary font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
               {card.exampleTranslation}
             </div>
           </div>
@@ -187,12 +184,12 @@ function CardAnswerFields({ card, deckType, deckLang, uiLang, defLangPref, strin
         <div className="flex flex-wrap items-center gap-3">
           <PhoneticBadge ipa={card.ipa} />
           {card.kanji && (
-            <span className="text-xl md:text-2xl font-bold" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
+            <span className="study-answer-primary font-bold" style={{ color: 'var(--foreground)', opacity: 0.7 }}>
               {card.kanji}
             </span>
           )}
           {card.romaji && (
-            <span className="font-mono text-sm" style={{ color: 'var(--muted)' }}>
+            <span className="study-answer-support font-mono" style={{ color: 'var(--muted)' }}>
               [{card.romaji}]
             </span>
           )}
@@ -212,12 +209,12 @@ function CardAnswerFields({ card, deckType, deckLang, uiLang, defLangPref, strin
         <div className="flex flex-wrap items-center gap-3">
           <PhoneticBadge ipa={card.ipa} />
           {card.hanja && (
-            <span className="text-xl font-bold" style={{ color: 'var(--foreground)', opacity: 0.65 }}>
+            <span className="study-answer-primary font-bold" style={{ color: 'var(--foreground)', opacity: 0.65 }}>
               {card.hanja}
             </span>
           )}
           {card.romaji && (
-            <span className="font-mono text-sm" style={{ color: 'var(--muted)' }}>
+            <span className="study-answer-support font-mono" style={{ color: 'var(--muted)' }}>
               [{card.romaji}]
             </span>
           )}
@@ -289,7 +286,7 @@ function CardAnswerFields({ card, deckType, deckLang, uiLang, defLangPref, strin
         <div className="flex flex-wrap items-center gap-3">
           <PhoneticBadge ipa={card.ipa} />
           {card.romaji && (
-            <span className="font-mono text-sm" style={{ color: 'var(--muted)' }}>
+            <span className="study-answer-support font-mono" style={{ color: 'var(--muted)' }}>
               [{card.romaji}]
             </span>
           )}
@@ -331,7 +328,7 @@ function CardAnswerFields({ card, deckType, deckLang, uiLang, defLangPref, strin
               Inflections
             </span>
           </div>
-          <div className="text-sm md:text-base font-semibold pl-4 border-l-2"
+          <div className="study-answer-support font-semibold pl-4 border-l-2"
             style={{ borderColor: 'var(--border)', opacity: 0.75 }}>
             {card.inflections}
           </div>
@@ -427,7 +424,7 @@ function DefinitionBlock({ card, deckLang, uiLang, defLangPref }: DefinitionBloc
 
   if (!isBilingual) {
     return (
-      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: '-0.02em' }}>
+      <div className="study-answer-primary font-black leading-tight" data-testid="study-answer-primary" style={{ letterSpacing: '-0.02em' }}>
         {card.definition}
       </div>
     );
@@ -456,7 +453,7 @@ function DefinitionBlock({ card, deckLang, uiLang, defLangPref }: DefinitionBloc
 
   return (
     <div className="space-y-3">
-      <div className="text-2xl md:text-3xl font-black leading-tight" style={{ letterSpacing: '-0.02em' }}>
+      <div className="study-answer-primary font-black leading-tight" data-testid="study-answer-primary" style={{ letterSpacing: '-0.02em' }}>
         {renderContent()}
       </div>
       {/* Language toggle buttons — hidden when global preference is bilingual */}
@@ -510,7 +507,7 @@ function ConjugationBlock({ card, label }: { card: Card; label: string }) {
           {label}
         </span>
       </div>
-      <div className="text-sm md:text-base font-semibold pl-4 border-l-2"
+      <div className="study-answer-support font-semibold pl-4 border-l-2"
         style={{ borderColor: 'var(--border)', opacity: 0.75 }}>
         {card.inflections}
       </div>
@@ -538,7 +535,7 @@ function ExampleBlock({ card, deckLang }: { card: Card; deckLang: string }) {
           <Volume2 className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
         </button>
       </div>
-      <div className="text-base md:text-lg leading-relaxed font-medium">
+      <div className="study-answer-secondary leading-relaxed font-medium">
         {deckLang === 'en'
           ? formatTagsInText(card.example, card.front, card.inflections)
           : card.example}
@@ -557,7 +554,7 @@ function CollocationsBlock({ card }: { card: Card }) {
           Collocations
         </span>
       </div>
-      <div className="text-sm md:text-base font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
+      <div className="study-answer-support font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
         {formatTagsInText(card.collocations, card.front, card.inflections, 'tagsOnly')}
       </div>
     </div>
@@ -574,7 +571,7 @@ function DerivativesBlock({ card }: { card: Card }) {
           Derivatives
         </span>
       </div>
-      <div className="text-sm md:text-base font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
+      <div className="study-answer-support font-semibold leading-relaxed" style={{ opacity: 0.8 }}>
         {formatTagsInText(card.derivatives, card.front, card.inflections, 'tagsOnly')}
       </div>
     </div>
@@ -590,15 +587,26 @@ interface Props {
   strings: UIStrings;
   decks: Deck[];
   onFinish: () => void;
+  onDataChanged: () => void;
   uiLang: string;
   defLangPref: 'deck' | 'user' | 'bilingual';
 }
 
-export default function LearningView({ queue, setQueue, onCardSeen, strings, decks, onFinish, uiLang, defLangPref }: Props) {
+export default function LearningView({
+  queue,
+  setQueue,
+  onCardSeen,
+  strings,
+  decks,
+  onFinish,
+  onDataChanged,
+  uiLang,
+  defLangPref,
+}: Props) {
   const [currentCard, setCurrentCard] = useState<Card | null>(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [totalInitial] = useState(queue.length);
-  const { speak, audioError } = useTTS();
+  const { speak, audioError, cancel } = useTTS();
   const isRatingRef = useRef(false);
 
   // Resolve deck language for current card
@@ -614,7 +622,7 @@ export default function LearningView({ queue, setQueue, onCardSeen, strings, dec
 
   useEffect(() => {
     if (currentCard && !showAnswer) speak(currentCard.front, ttsLang);
-  }, [currentCard, showAnswer]);
+  }, [currentCard, showAnswer, speak, ttsLang]);
 
   const handleRate = useCallback(async (
     ratingKey: 'again' | 'hard' | 'good' | 'easy',
@@ -640,10 +648,11 @@ export default function LearningView({ queue, setQueue, onCardSeen, strings, dec
     setQueue(newQueue);
     setShowAnswer(false);
     setCurrentCard(null);
-    window.speechSynthesis.cancel();
+    cancel();
 
     try {
       await DB.commitReview(updatedCard, getTodayStr(), ratingKey, isFirstTouchToday, previousRating);
+      onDataChanged();
     } catch (err) {
       console.error(err);
       alert('儲存失敗: ' + (err instanceof Error ? err.message : String(err)));
@@ -652,7 +661,7 @@ export default function LearningView({ queue, setQueue, onCardSeen, strings, dec
     }
 
     if (newQueue.length === 0) onFinish();
-  }, [currentCard, showAnswer, queue, onCardSeen, onFinish, setQueue]);
+  }, [currentCard, showAnswer, queue, onCardSeen, onFinish, onDataChanged, setQueue, cancel]);
 
   const handleRateRef = useRef(handleRate);
   useEffect(() => { handleRateRef.current = handleRate; }, [handleRate]);
@@ -752,7 +761,8 @@ export default function LearningView({ queue, setQueue, onCardSeen, strings, dec
         <div className="flex-1 flex flex-col justify-center">
           <div className="flex items-center justify-center gap-3 mb-2">
             <h1
-              className="text-4xl md:text-6xl font-black tracking-tight text-center break-all"
+              className="study-card__prompt font-black tracking-tight text-center break-all"
+              data-testid="study-prompt"
               style={!showAnswer ? {
                 background: `linear-gradient(135deg, var(--foreground) 30%, var(--primary) 100%)`,
                 WebkitBackgroundClip: 'text',

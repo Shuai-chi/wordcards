@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { Settings, Upload, BookOpen, Sun, Moon, Globe } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import Home from './components/Home';
 import LearningView from './components/LearningView';
+import ListeningMode from './components/ListeningMode';
 import FinishedView from './components/FinishedView';
 import { DB } from './lib/db';
 import { parseCSV } from './lib/csv';
@@ -11,12 +12,31 @@ import SettingsModal from './components/SettingsModal';
 import EditDeckModal from './components/EditDeckModal';
 import { UI_STRINGS, t } from './lib/languages';
 import type { UILang } from './lib/languages';
+import {
+  applyAppearance,
+  getEffectiveTheme,
+  getSystemTheme,
+  readAppearanceSettings,
+  saveAppearanceSettings,
+  withAppearanceTimestamp,
+  type AppearanceSettingsV1,
+  type EffectiveTheme,
+} from './lib/theme';
+import {
+  applyUiPreferences,
+  normalizeUiPreferences,
+  readUiPreferences,
+  saveUiPreferences,
+  type UiPreferencesV1,
+} from './lib/uiPreferences';
+import type { ActiveIconAssets, IconAssetRecord } from './lib/iconAssets';
+import {
+  createGoogleDriveCloudSyncController,
+  type CloudSyncController,
+} from './lib/cloudSyncController';
+import { LISTENING_STRINGS } from './lib/listeningStrings';
 
-export type ViewState = 'home' | 'dashboard' | 'learning' | 'finished';
-
-function getSystemTheme(): 'light' | 'dark' {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+export type ViewState = 'home' | 'dashboard' | 'learning' | 'listening' | 'finished';
 
 const UI_LANG_OPTIONS: { code: UILang; label: string; flag: string }[] = [
   { code: 'zh-TW', label: '繁中', flag: '🇹🇼' },
@@ -35,6 +55,7 @@ function App() {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [report, setReport] = useState<Report | null>(null);
   const [sessionQueue, setSessionQueue] = useState<Card[]>([]);
+  const [listeningDeckIds, setListeningDeckIds] = useState<string[]>([]);
   const [seenCardIds, setSeenCardIds] = useState<Set<string>>(new Set());
   const [globalDailyLimit, setGlobalDailyLimit] = useState(30);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -45,11 +66,15 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toastTimerRef = useRef<number | null>(null);
 
-  // Theme
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    const saved = localStorage.getItem('srs_theme') as 'light' | 'dark' | null;
-    return saved ?? getSystemTheme();
-  });
+  // Appearance settings: saved state and a non-persistent live preview for the settings modal.
+  const [appearance, setAppearance] = useState<AppearanceSettingsV1>(() => readAppearanceSettings());
+  const [appearancePreview, setAppearancePreview] = useState<AppearanceSettingsV1 | null>(null);
+  const [systemTheme, setSystemTheme] = useState<EffectiveTheme>(() => getSystemTheme());
+  const [uiPreferences, setUiPreferences] = useState<UiPreferencesV1>(() => readUiPreferences());
+  const [uiPreferencesPreview, setUiPreferencesPreview] = useState<UiPreferencesV1 | null>(null);
+  const [iconRecords, setIconRecords] = useState<IconAssetRecord[]>([]);
+  const [iconRecordsPreview, setIconRecordsPreview] = useState<IconAssetRecord[] | null>(null);
+  const [activeIconAssets, setActiveIconAssets] = useState<ActiveIconAssets>({});
 
   // UI language
   const [uiLang, setUiLang] = useState<UILang>(() => {
@@ -63,38 +88,15 @@ function App() {
   });
 
   const strings = UI_STRINGS[uiLang];
+  const listeningStrings = LISTENING_STRINGS[uiLang];
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('srs_theme', theme);
-  }, [theme]);
-
-  // Close lang menu on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
-        setIsLangMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const toggleTheme = () => setTheme(th => (th === 'dark' ? 'light' : 'dark'));
-
-  const switchUiLang = (lang: UILang) => {
-    setUiLang(lang);
-    localStorage.setItem('srs_ui_lang', lang);
-    setIsLangMenuOpen(false);
-  };
-
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMsg(msg);
     toastTimerRef.current = window.setTimeout(() => setToastMsg(null), 3000);
-  };
+  }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const savedLimit = localStorage.getItem('srs_global_limit');
       if (savedLimit) setGlobalDailyLimit(parseInt(savedLimit, 10));
@@ -107,9 +109,150 @@ function App() {
       alert(`${strings.loadFailed}: ${err instanceof Error ? err.message : String(err)}`);
       showToast(strings.loadFailed);
     }
+  }, [showToast, strings.loadFailed]);
+
+  // Re-reads everything a synced/imported snapshot can touch (decks, cards,
+  // reports via loadData; icons, appearance, ui preferences, ui language and
+  // definition-language preference directly) so applying remote or imported
+  // data can refresh the running app in place, without a page reload.
+  // Reloading here would also discard the cloud-sync controller below and
+  // its in-memory OAuth token, dropping a passive client's connection the
+  // moment another device's change lands.
+  const refreshSyncedState = useCallback(async () => {
+    await loadData();
+    try {
+      setIconRecords(await DB.getAllIconAssets());
+    } catch (error) {
+      console.error('Failed to reload custom icons after sync', error);
+    }
+    setAppearance(readAppearanceSettings());
+    setUiPreferences(readUiPreferences());
+    const lang = localStorage.getItem('srs_ui_lang');
+    if (lang) setUiLang(lang as UILang);
+    const pref = localStorage.getItem('srs_def_lang_pref');
+    if (pref) setDefLangPref(pref as DefLangPref);
+  }, [loadData]);
+
+  // onRemoteApplied only bumps a counter (never touches a ref or closes
+  // over refreshSyncedState) so the one-time useState initializer below
+  // stays trivially free of the "ref access during render" concern; the
+  // actual refresh runs in the effect further down, in response to the tick.
+  const [remoteAppliedTick, setRemoteAppliedTick] = useState(0);
+  const isFirstRemoteAppliedTick = useRef(true);
+
+  const [cloudSyncController] = useState<CloudSyncController>(() => (
+    createGoogleDriveCloudSyncController({
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '',
+      onRemoteApplied: () => setRemoteAppliedTick(tick => tick + 1),
+    })
+  ));
+  const [cloudSyncState, setCloudSyncState] = useState(() => cloudSyncController.getState());
+
+  useEffect(() => {
+    if (isFirstRemoteAppliedTick.current) {
+      isFirstRemoteAppliedTick.current = false;
+      return;
+    }
+    void refreshSyncedState();
+  }, [remoteAppliedTick, refreshSyncedState]);
+
+  const displayedAppearance = appearancePreview ?? appearance;
+  const displayedUiPreferences = uiPreferencesPreview ?? uiPreferences;
+  const displayedIconRecords = iconRecordsPreview ?? iconRecords;
+  const effectiveTheme = getEffectiveTheme(displayedAppearance, systemTheme);
+
+  useEffect(() => {
+    const unsubscribe = cloudSyncController.subscribe(setCloudSyncState);
+    const handleOnline = () => cloudSyncController.handleOnline();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') cloudSyncController.handleForeground();
+    };
+    window.addEventListener('online', handleOnline);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      unsubscribe();
+      window.removeEventListener('online', handleOnline);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [cloudSyncController]);
+
+  useEffect(() => {
+    applyAppearance(displayedAppearance, systemTheme);
+  }, [displayedAppearance, systemTheme]);
+
+  useEffect(() => {
+    saveAppearanceSettings(appearance);
+  }, [appearance]);
+
+  useEffect(() => {
+    applyUiPreferences(displayedUiPreferences);
+  }, [displayedUiPreferences]);
+
+  useEffect(() => {
+    saveUiPreferences(uiPreferences);
+  }, [uiPreferences]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void DB.getAllIconAssets()
+      .then(records => { if (!cancelled) setIconRecords(records); })
+      .catch(error => console.error('Failed to load custom icons', error));
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const next: ActiveIconAssets = {};
+    const urls: string[] = [];
+    for (const record of displayedIconRecords) {
+      if (record.profileId !== displayedUiPreferences.activeIconProfileId) continue;
+      const url = URL.createObjectURL(record.blob);
+      urls.push(url);
+      next[record.slot] = {
+        url,
+        fit: record.fit,
+        zoom: record.zoom,
+        offsetX: record.offsetX,
+        offsetY: record.offsetY,
+      };
+    }
+    setActiveIconAssets(next);
+    return () => urls.forEach(url => URL.revokeObjectURL(url));
+  }, [displayedIconRecords, displayedUiPreferences.activeIconProfileId]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (event: MediaQueryListEvent) => setSystemTheme(event.matches ? 'dark' : 'light');
+    media.addEventListener('change', handleChange);
+    return () => media.removeEventListener('change', handleChange);
+  }, []);
+
+  // Close lang menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (langMenuRef.current && !langMenuRef.current.contains(e.target as Node)) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const toggleTheme = () => {
+    setAppearance(current => withAppearanceTimestamp({
+      ...current,
+      mode: effectiveTheme === 'dark' ? 'light' : 'dark',
+    }));
+    cloudSyncController.notifyLocalChange();
   };
 
-  useEffect(() => { loadData(); }, [view]);
+  const switchUiLang = (lang: UILang) => {
+    setUiLang(lang);
+    localStorage.setItem('srs_ui_lang', lang);
+    setIsLangMenuOpen(false);
+    cloudSyncController.notifyLocalChange();
+  };
+
+  useEffect(() => { loadData(); }, [loadData, view]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -161,6 +304,7 @@ function App() {
     if (successCount > 0) {
       showToast(t(strings, 'importSuccess', { n: successCount }));
       loadData();
+      cloudSyncController.notifyLocalChange();
     }
 
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -183,14 +327,15 @@ function App() {
     }
     setSectionMode(mode);
     setView('dashboard');
+    cloudSyncController.notifyLocalChange();
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="app-shell min-h-screen flex flex-col font-sans" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
 
       {/* ── Header ── */}
       <header
-        className="sticky top-0 z-30 w-full"
+        className="app-header sticky top-0 z-30 w-full"
         style={{
           borderBottom: '1px solid var(--border)',
           background: 'color-mix(in srgb, var(--background) 85%, transparent)',
@@ -198,7 +343,7 @@ function App() {
           WebkitBackdropFilter: 'blur(16px)',
         }}
       >
-        <div className="mx-auto max-w-4xl px-4 h-14 flex items-center justify-between">
+        <div className="app-header__inner mx-auto max-w-4xl px-4 h-14 flex items-center justify-between">
           {/* Logo */}
           <div
             className="flex items-center gap-2.5 cursor-pointer group select-none"
@@ -210,7 +355,7 @@ function App() {
             >
               <BookOpen className="w-4 h-4" style={{ color: 'var(--primary-foreground)' }} />
             </div>
-            <span className="text-base font-bold tracking-tight" style={{ letterSpacing: '-0.01em' }}>
+            <span className="brand-label text-base font-bold tracking-tight" style={{ letterSpacing: '-0.01em' }}>
               WordForge
             </span>
           </div>
@@ -238,9 +383,9 @@ function App() {
             <button
               className="btn btn-ghost w-9 h-9 p-0 rounded-xl"
               onClick={toggleTheme}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+              title={effectiveTheme === 'dark' ? strings.themeLight : strings.themeDark}
             >
-              {theme === 'dark'
+              {effectiveTheme === 'dark'
                 ? <Sun className="w-4 h-4" />
                 : <Moon className="w-4 h-4" />
               }
@@ -295,7 +440,12 @@ function App() {
             {/* Settings */}
             <button
               className="btn btn-ghost w-9 h-9 p-0 rounded-xl"
-              onClick={() => setIsSettingsOpen(true)}
+              onClick={() => {
+                setAppearancePreview(null);
+                setUiPreferencesPreview(null);
+                setIconRecordsPreview(null);
+                setIsSettingsOpen(true);
+              }}
               title={strings.settings}
             >
               <Settings className="w-4 h-4" />
@@ -305,11 +455,12 @@ function App() {
       </header>
 
       {/* ── Main ── */}
-      <main className="flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-8">
+      <main className="app-main flex-1 w-full max-w-4xl mx-auto px-4 py-6 md:py-8">
         {view === 'home' && (
           <Home
             decks={decks}
             strings={strings}
+            iconAssets={activeIconAssets}
             onSelectMode={openSection}
           />
         )}
@@ -320,17 +471,29 @@ function App() {
             report={report}
             globalLimit={globalDailyLimit}
             strings={strings}
+            listeningStrings={listeningStrings}
+            iconAssets={activeIconAssets}
             onStartSession={(queue) => {
               setSessionQueue(queue);
               setSeenCardIds(new Set());
               setView('learning');
             }}
+            onStartListening={(deckIds) => {
+              setListeningDeckIds(deckIds);
+              setView('listening');
+            }}
             onEditDeck={(d) => setEditingDeck(d)}
+            onDataChanged={() => cloudSyncController.notifyLocalChange()}
             onDeleteDeck={async (id) => {
-              if (!id) { loadData(); return; }
+              if (!id) {
+                loadData();
+                cloudSyncController.notifyLocalChange();
+                return;
+              }
               if (confirm(strings.confirmDelete)) {
                 await DB.deleteDeck(id);
                 loadData();
+                cloudSyncController.notifyLocalChange();
               }
             }}
           />
@@ -344,8 +507,21 @@ function App() {
             strings={strings}
             decks={decks}
             onFinish={() => setView('finished')}
+            onDataChanged={() => cloudSyncController.notifyLocalChange()}
             uiLang={uiLang}
             defLangPref={defLangPref}
+          />
+        )}
+
+        {view === 'listening' && (
+          <ListeningMode
+            mode={sectionMode}
+            deckIds={listeningDeckIds}
+            decks={decks}
+            globalLimit={globalDailyLimit}
+            uiLang={uiLang}
+            onBack={() => setView('dashboard')}
+            onPreferencesChanged={() => cloudSyncController.notifyLocalChange()}
           />
         )}
 
@@ -378,17 +554,57 @@ function App() {
         <SettingsModal
           currentLimit={globalDailyLimit}
           defLangPref={defLangPref}
+          appearance={appearance}
+          systemTheme={systemTheme}
+          uiLang={uiLang}
+          uiPreferences={uiPreferences}
+          iconRecords={iconRecords}
           strings={strings}
-          onSave={(limit) => {
-            setGlobalDailyLimit(limit);
-            localStorage.setItem('srs_global_limit', limit.toString());
+          onAppearancePreview={setAppearancePreview}
+          onUiPreferencesPreview={setUiPreferencesPreview}
+          onIconRecordsPreview={setIconRecordsPreview}
+          onBackupImported={() => {
+            void refreshSyncedState();
+            setAppearancePreview(null);
+            setUiPreferencesPreview(null);
+            setIconRecordsPreview(null);
             setIsSettingsOpen(false);
           }}
-          onDefLangPrefSave={(pref) => {
+          cloudSyncState={cloudSyncState}
+          onCloudConnect={() => cloudSyncController.connect()}
+          onCloudSyncNow={() => cloudSyncController.syncNow()}
+          onCloudDisconnect={() => cloudSyncController.disconnect()}
+          onCloudDelete={() => cloudSyncController.deleteCloudData()}
+          onCloudResolveConflict={choice => (
+            cloudSyncController.resolveConflict(choice)
+          )}
+          onSave={async (limit, pref, nextAppearance, nextUiPreferences, nextIconRecords) => {
+            const normalizedUiPreferences = normalizeUiPreferences(nextUiPreferences);
+            saveUiPreferences(normalizedUiPreferences);
+            try {
+              await DB.replaceAllIconAssets(nextIconRecords);
+            } catch (error) {
+              saveUiPreferences(uiPreferences);
+              throw error;
+            }
+            setGlobalDailyLimit(limit);
+            localStorage.setItem('srs_global_limit', limit.toString());
             setDefLangPref(pref);
             localStorage.setItem('srs_def_lang_pref', pref);
+            setAppearance(nextAppearance);
+            setUiPreferences(normalizedUiPreferences);
+            setIconRecords(nextIconRecords);
+            setAppearancePreview(null);
+            setUiPreferencesPreview(null);
+            setIconRecordsPreview(null);
+            cloudSyncController.notifyLocalChange();
           }}
-          onClose={() => setIsSettingsOpen(false)}
+          onClose={() => {
+            setAppearancePreview(null);
+            setUiPreferencesPreview(null);
+            setIconRecordsPreview(null);
+            setIsSettingsOpen(false);
+          }}
         />
       )}
 
@@ -400,6 +616,7 @@ function App() {
             await DB.putDeck(updated);
             setEditingDeck(null);
             loadData();
+            cloudSyncController.notifyLocalChange();
           }}
           onClose={() => setEditingDeck(null)}
         />

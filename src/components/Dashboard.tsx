@@ -5,25 +5,57 @@ import { LANG_CONFIGS, t } from '../lib/languages';
 import { DB, getTodayStr } from '../lib/db';
 import { shuffleArray } from '../lib/srs';
 import {
+  collectTodayQueueCandidates,
+  materializeTodayQueue,
+  summarizeTodayQueue,
+  type DeckCardSet,
+} from '../lib/practiceQueue';
+import {
   Target, CheckCircle2, Edit2, Trash2, Upload,
   ListChecks, X, RotateCw, Play, Layers,
-  AlertTriangle, ThumbsUp, Sparkles,
+  AlertTriangle, ThumbsUp, Sparkles, Headphones,
 } from 'lucide-react';
 import BulkEditModal from './BulkEditModal';
+import CustomIcon from './CustomIcon';
+import type { ActiveIconAssets, IconSlot } from '../lib/iconAssets';
+import { formatStatDisplay } from '../lib/statDisplay';
+import type { LucideIcon } from 'lucide-react';
+import type { ListeningStrings } from '../lib/listeningStrings';
+
+async function loadDeckCardSets(
+  decks: Deck[],
+  selectedDeckIds: Iterable<string>,
+): Promise<DeckCardSet[]> {
+  const sets: DeckCardSet[] = [];
+  for (const deckId of selectedDeckIds) {
+    const deck = decks.find(candidate => candidate.id === deckId);
+    if (!deck) continue;
+    try {
+      sets.push({ deck, cards: await DB.getCardsByDeck(deckId) });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  return sets;
+}
 
 interface Props {
   decks: Deck[];
   report: Report | null;
   globalLimit: number;
   strings: UIStrings;
+  listeningStrings: ListeningStrings;
+  iconAssets?: ActiveIconAssets;
   onStartSession: (queue: Card[]) => void;
+  onStartListening: (deckIds: string[]) => void;
   onEditDeck: (d: Deck) => void;
   onDeleteDeck: (id: string) => void;
+  onDataChanged: () => void;
 }
 
 export default function Dashboard({
-  decks, report, globalLimit, strings,
-  onStartSession, onEditDeck, onDeleteDeck,
+  decks, report, globalLimit, strings, listeningStrings, iconAssets = {},
+  onStartSession, onStartListening, onEditDeck, onDeleteDeck, onDataChanged,
 }: Props) {
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(() => {
     const saved = localStorage.getItem('srs_selected_decks');
@@ -50,43 +82,10 @@ export default function Dashboard({
         setBudgetInfo({ expected: 0, touchedToday: 0 });
         return;
       }
-      const todayStr = getTodayStr();
-      let drawnGlobalNewToday = 0;
-      let totalTargetNew = 0;
-      let urgentCount = 0;
-      let standardDueCount = 0;
-      let touchedTodayCount = 0;
-
-      for (const deckId of selectedDeckIds) {
-        const deck = decks.find(d => d.id === deckId);
-        if (!deck) continue;
-        try {
-          const cards = await DB.getCardsByDeck(deckId);
-          let deckDrawnNewToday = 0;
-          cards.forEach(c => {
-            if (c.introducedDate === todayStr) { deckDrawnNewToday++; drawnGlobalNewToday++; }
-            if (c.lastReviewedDate === todayStr) touchedTodayCount++;
-            if (c.state === 'new') return;
-            const isUrgent = c.state === 'learning' || c.state === 'relearning';
-            if (isUrgent) urgentCount++;
-            else if (c.state === 'graduated') {
-              const nextD = new Date(c.lastReviewedDate + 'T00:00:00');
-              nextD.setDate(nextD.getDate() + c.interval);
-              const nextStr = `${nextD.getFullYear()}-${String(nextD.getMonth()+1).padStart(2,'0')}-${String(nextD.getDate()).padStart(2,'0')}`;
-              if (nextStr <= todayStr) standardDueCount++;
-            }
-          });
-          totalTargetNew += Math.max(0, (deck.newCardLimit ?? 20) - deckDrawnNewToday);
-        } catch (e) { console.error(e); }
-      }
-
-      let expectedCount = urgentCount;
-      let remainingBudget = Math.max(0, globalLimit - drawnGlobalNewToday);
-      const takesStandard = Math.min(standardDueCount, remainingBudget);
-      expectedCount += takesStandard;
-      remainingBudget -= takesStandard;
-      expectedCount += Math.min(totalTargetNew, remainingBudget);
-      setBudgetInfo({ expected: expectedCount, touchedToday: touchedTodayCount });
+      const sets = await loadDeckCardSets(decks, selectedDeckIds);
+      setBudgetInfo(summarizeTodayQueue(
+        collectTodayQueueCandidates(sets, globalLimit, getTodayStr()),
+      ));
     }
     calcBudget();
   }, [decks, selectedDeckIds, globalLimit]);
@@ -109,51 +108,11 @@ export default function Dashboard({
 
   const handleStart = async () => {
     if (selectedDeckIds.size === 0) return;
-    const todayStr = getTodayStr();
-    let drawnGlobalNewToday = 0;
-    const urgentCards: Card[] = [];
-    const standardDueCards: Card[] = [];
-    const newCards: Card[] = [];
-
-    for (const deckId of selectedDeckIds) {
-      const deck = decks.find(d => d.id === deckId);
-      if (!deck) continue;
-      const cards = await DB.getCardsByDeck(deckId);
-      let deckDrawnNewToday = 0;
-      const dUrgent: Card[] = [], dStandard: Card[] = [], dNew: Card[] = [];
-
-      cards.forEach(c => {
-        if (c.introducedDate === todayStr) { deckDrawnNewToday++; drawnGlobalNewToday++; }
-        if (c.state === 'new') { dNew.push(c); return; }
-        const isUrgent = c.state === 'learning' || c.state === 'relearning';
-        if (isUrgent) { dUrgent.push(c); return; }
-        if (c.state === 'graduated') {
-          const nextD = new Date(c.lastReviewedDate + 'T00:00:00');
-          nextD.setDate(nextD.getDate() + c.interval);
-          const nextStr = `${nextD.getFullYear()}-${String(nextD.getMonth()+1).padStart(2,'0')}-${String(nextD.getDate()).padStart(2,'0')}`;
-          if (nextStr <= todayStr) dStandard.push(c);
-        }
-      });
-      urgentCards.push(...dUrgent);
-      standardDueCards.push(...dStandard);
-      const newSlots = Math.max(0, (deck.newCardLimit ?? 20) - deckDrawnNewToday);
-      newCards.push(...shuffleArray(dNew).slice(0, newSlots));
-    }
-
-    let queue = shuffleArray(urgentCards);
-    let remainingBudget = Math.max(0, globalLimit - drawnGlobalNewToday);
-    const takesStandard = Math.min(standardDueCards.length, remainingBudget);
-    queue.push(...shuffleArray(standardDueCards).slice(0, takesStandard));
-    remainingBudget -= takesStandard;
-    queue.push(...shuffleArray(newCards).slice(0, Math.min(newCards.length, remainingBudget)));
-
-    if (queue.length === 0) {
-      for (const deckId of selectedDeckIds) {
-        const cards = await DB.getCardsByDeck(deckId);
-        cards.forEach(c => { if (c.lastReviewedDate === todayStr) queue.push(c); });
-      }
-      queue = shuffleArray(queue);
-    }
+    const sets = await loadDeckCardSets(decks, selectedDeckIds);
+    const queue = materializeTodayQueue(
+      collectTodayQueueCandidates(sets, globalLimit, getTodayStr()),
+      shuffleArray,
+    );
 
     if (queue.length > 0) onStartSession(queue);
   };
@@ -163,23 +122,27 @@ export default function Dashboard({
     if (newSet.has(id)) newSet.delete(id); else newSet.add(id);
     setSelectedDeckIds(newSet);
     localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(newSet)));
+    onDataChanged();
   };
 
   const handleSelectAll = () => {
     const allIds = new Set(filteredDecks.map(d => d.id));
     setSelectedDeckIds(allIds);
     localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(allIds)));
+    onDataChanged();
   };
 
   const handleDeselectAll = () => {
     setSelectedDeckIds(new Set());
     localStorage.setItem('srs_selected_decks', JSON.stringify([]));
+    onDataChanged();
   };
 
   const handleInvertSelection = () => {
     const newSet = new Set(filteredDecks.filter(d => !selectedDeckIds.has(d.id)).map(d => d.id));
     setSelectedDeckIds(newSet);
     localStorage.setItem('srs_selected_decks', JSON.stringify(Array.from(newSet)));
+    onDataChanged();
   };
 
   const handleBulkDelete = async () => {
@@ -191,6 +154,7 @@ export default function Dashboard({
         }
         onDeleteDeck('');
         setSelectedDeckIds(new Set());
+        onDataChanged();
       }
     }
   };
@@ -209,63 +173,47 @@ export default function Dashboard({
         : strings.noTasksToday;
 
   const canStart = selectedDeckIds.size > 0 && (budgetInfo.expected > 0 || budgetInfo.touchedToday > 0);
+  const speechSupported = typeof window !== 'undefined'
+    && 'speechSynthesis' in window
+    && typeof SpeechSynthesisUtterance !== 'undefined';
+
+  const stats: Array<{
+    slot: IconSlot;
+    label: string;
+    value: number;
+    icon: LucideIcon;
+    color: string;
+  }> = [
+    { slot: 'practiced', label: strings.todayPracticed, value: cTotal, icon: Target, color: 'var(--primary)' },
+    { slot: 'hard', label: strings.hard, value: cHard, icon: AlertTriangle, color: 'var(--warning)' },
+    { slot: 'good', label: strings.good, value: cGood, icon: ThumbsUp, color: 'var(--success)' },
+    { slot: 'easy', label: strings.easy, value: cEasy, icon: Sparkles, color: 'var(--primary)' },
+  ];
 
   return (
     <div className="space-y-6">
 
       {/* ── Stats ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {/* Total */}
-        <div className="stat-card">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>{strings.todayPracticed}</span>
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'color-mix(in srgb, var(--primary) 10%, transparent)' }}>
-              <Target className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
+      <div className="stat-grid">
+        {stats.map(stat => (
+          <div className="stat-card" data-testid={`stat-card-${stat.slot}`} key={stat.slot}>
+            <div className="stat-card__left" data-testid="stat-left" style={{ color: 'var(--muted)' }}>
+              <div className="stat-card__icon-zone" data-testid="stat-icon-zone">
+                <CustomIcon
+                  asset={iconAssets[stat.slot]}
+                  fallback={stat.icon}
+                  className="stat-card__icon"
+                  fallbackClassName="stat-card__fallback-icon"
+                  style={{ color: stat.color }}
+                />
+              </div>
+              <div className="stat-card__label" data-testid="stat-label">{stat.label}</div>
+            </div>
+            <div className="stat-card__number font-black tracking-tight" data-testid="stat-number" style={{ color: stat.color }}>
+              {formatStatDisplay(stat.value)}
             </div>
           </div>
-          <div className="text-2xl font-black tracking-tight">{cTotal}</div>
-          <div className="text-xs" style={{ color: 'var(--muted)' }}>{strings.cards}</div>
-        </div>
-
-        {/* Hard — 色盲友好: AlertTriangle icon + 顏色雙重編碼 */}
-        <div className="stat-card">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>{strings.hard}</span>
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'color-mix(in srgb, var(--warning) 10%, transparent)' }}>
-              <AlertTriangle className="w-3.5 h-3.5" style={{ color: 'var(--warning)' }} />
-            </div>
-          </div>
-          <div className="text-2xl font-black tracking-tight" style={{ color: 'var(--warning)' }}>{cHard}</div>
-          <div className="text-xs" style={{ color: 'var(--muted)' }}>Hard</div>
-        </div>
-
-        {/* Good — 色盲友好: ThumbsUp icon + 顏色雙重編碼 */}
-        <div className="stat-card">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>{strings.good}</span>
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'color-mix(in srgb, var(--success) 10%, transparent)' }}>
-              <ThumbsUp className="w-3.5 h-3.5" style={{ color: 'var(--success)' }} />
-            </div>
-          </div>
-          <div className="text-2xl font-black tracking-tight" style={{ color: 'var(--success)' }}>{cGood}</div>
-          <div className="text-xs" style={{ color: 'var(--muted)' }}>Good</div>
-        </div>
-
-        {/* Easy — 色盲友好: Sparkles icon + 顏色雙重編碼 */}
-        <div className="stat-card">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>{strings.easy}</span>
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: 'color-mix(in srgb, var(--primary) 10%, transparent)' }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--primary)' }} />
-            </div>
-          </div>
-          <div className="text-2xl font-black tracking-tight" style={{ color: 'var(--primary)' }}>{cEasy}</div>
-          <div className="text-xs" style={{ color: 'var(--muted)' }}>Easy</div>
-        </div>
+        ))}
       </div>
 
       {/* ── Header Row ── */}
@@ -287,14 +235,33 @@ export default function Dashboard({
           </span>
         </div>
 
-        <button
-          onClick={handleStart}
-          disabled={!canStart}
-          className="btn btn-primary gap-2 sm:min-w-[160px]"
-        >
-          <Play className="w-3.5 h-3.5" />
-          {startLabel}
-        </button>
+        <div className="dashboard-session-actions">
+          <button
+            data-testid="practice-start"
+            onClick={handleStart}
+            disabled={!canStart}
+            className="btn btn-primary gap-2 sm:min-w-[160px]"
+          >
+            <Play className="w-3.5 h-3.5" />
+            {startLabel}
+          </button>
+          <button
+            type="button"
+            data-testid="listening-entry"
+            onClick={() => onStartListening([...selectedDeckIds])}
+            disabled={selectedDeckIds.size === 0 || !speechSupported}
+            className="btn btn-secondary gap-2 sm:min-w-[160px]"
+            title={speechSupported ? listeningStrings.doesNotAffectProgress : listeningStrings.unsupported}
+          >
+            <Headphones className="w-4 h-4" aria-hidden="true" />
+            {listeningStrings.entry}
+          </button>
+          <small className="dashboard-listening-note">
+            {speechSupported
+              ? listeningStrings.doesNotAffectProgress
+              : listeningStrings.unsupported}
+          </small>
+        </div>
       </div>
 
       {/* ── Language filter chips (only shown if >1 language in library) ── */}
@@ -399,6 +366,7 @@ export default function Dashboard({
                 }
                 setIsBulkEditOpen(false);
                 if (decks.length > 0) onDeleteDeck('');
+                onDataChanged();
               }}
             />
           )}

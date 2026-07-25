@@ -23,3 +23,11 @@ AGENTS.md
 SKILL.md
 project-specs/
 project-tasks/
+
+# Local environment configuration
+.env
+.env.*
+!.env.example
+
+# Session backup copies (created before risky edits, never committed)
+*.bak-*

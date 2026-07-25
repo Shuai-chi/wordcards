@@ -2,10 +2,13 @@ import { BookOpen, MessageSquareQuote } from 'lucide-react';
 import type { Deck, DeckType } from '../lib/types';
 import type { UIStrings } from '../lib/languages';
 import { t } from '../lib/languages';
+import type { ActiveIconAssets } from '../lib/iconAssets';
+import CustomIcon from './CustomIcon';
 
 interface Props {
   decks: Deck[];
   strings: UIStrings;
+  iconAssets?: ActiveIconAssets;
   onSelectMode: (mode: DeckType) => void;
 }
 
@@ -24,18 +27,18 @@ const MODES = [
   },
 ];
 
-export default function Home({ decks, strings, onSelectMode }: Props) {
+export default function Home({ decks, strings, iconAssets = {}, onSelectMode }: Props) {
   return (
-    <div className="min-h-[calc(100dvh-8.5rem)] flex flex-col items-center justify-center py-8 md:py-12">
-      <div className="w-full max-w-3xl">
+    <div className="home-shell">
+      <div className="mode-card-section w-full max-w-3xl">
         <h1
-          className="text-3xl md:text-4xl font-black tracking-tight text-center mb-8 md:mb-10"
+          className="home-heading font-black tracking-tight text-center"
           style={{ letterSpacing: '-0.03em' }}
         >
           {strings.homeTitle}
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+        <div className="mode-card-grid">
           {MODES.map(({ type, titleKey, descriptionKey, icon: Icon }) => {
             const deckCount = decks.filter(deck => (deck.deckType ?? 'vocab') === type).length;
 
@@ -43,28 +46,29 @@ export default function Home({ decks, strings, onSelectMode }: Props) {
               <button
                 key={type}
                 type="button"
-                className="card-container p-6 md:p-8 text-left cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:scale-[1.01] active:scale-[0.99]"
-                style={{ background: 'var(--card)', borderRadius: '1.5rem' }}
+                data-testid={`mode-card-${type}`}
+                className="card-container mode-card"
                 onClick={() => onSelectMode(type)}
               >
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
-                  style={{
-                    background: 'color-mix(in srgb, var(--primary) 12%, var(--card))',
-                    color: 'var(--primary)',
-                  }}
-                >
-                  <Icon className="w-7 h-7" />
+                <div className="mode-card__primary" data-testid="mode-primary">
+                  <CustomIcon
+                    asset={iconAssets[type]}
+                    fallback={Icon}
+                    className="mode-card__icon"
+                    fallbackClassName="mode-card__fallback-icon"
+                  />
+                  <div className="mode-card__title font-black" data-testid="mode-title">
+                    {strings[titleKey]}
+                  </div>
                 </div>
 
-                <div className="text-2xl font-black mb-2" style={{ letterSpacing: '-0.02em' }}>
-                  {strings[titleKey]}
-                </div>
-                <div className="text-sm md:text-base leading-relaxed mb-6" style={{ color: 'var(--muted)' }}>
-                  {strings[descriptionKey]}
-                </div>
-                <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--primary)' }}>
-                  {t(strings, 'deckCountLabel', { n: deckCount })}
+                <div className="mode-card__supporting">
+                  <div className="mode-card__description" style={{ color: 'var(--muted)' }}>
+                    {strings[descriptionKey]}
+                  </div>
+                  <div className="mode-card__count font-bold uppercase tracking-wider" style={{ color: 'var(--primary)' }}>
+                    {t(strings, 'deckCountLabel', { n: deckCount })}
+                  </div>
                 </div>
               </button>
             );
