@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from '../icons/koboyo';
 import { useFocusTrap } from '../lib/useFocusTrap';
 
 interface Props {

@@ -10,11 +10,7 @@ import {
   summarizeTodayQueue,
   type DeckCardSet,
 } from '../lib/practiceQueue';
-import {
-  Target, CheckCircle2, Edit2, Trash2, Upload,
-  ListChecks, X, RotateCw, Play, Layers,
-  AlertTriangle, ThumbsUp, Sparkles, Headphones,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Edit2, Headphones, Layers, ListChecks, Play, RotateCw, Sparkles, Target, ThumbsUp, Trash2, Upload, X } from '../icons/koboyo';
 import BulkEditModal from './BulkEditModal';
 import CustomIcon from './CustomIcon';
 import type { ActiveIconAssets, IconSlot } from '../lib/iconAssets';

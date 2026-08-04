@@ -1,4 +1,4 @@
-import { BookOpen, MessageSquareQuote } from 'lucide-react';
+import { BookOpen, MessageSquareQuote } from '../icons/koboyo';
 import type { Deck, DeckType } from '../lib/types';
 import type { UIStrings } from '../lib/languages';
 import { t } from '../lib/languages';

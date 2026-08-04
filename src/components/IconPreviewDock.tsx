@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react';
-import {
-  AlertTriangle,
-  BookOpen,
-  MessageSquareQuote,
-  Sparkles,
-  Target,
-  ThumbsUp,
-  type LucideIcon,
-} from 'lucide-react';
+import { AlertTriangle, BookOpen, MessageSquareQuote, Sparkles, Target, ThumbsUp } from '../icons/koboyo';
+import type { LucideIcon } from 'lucide-react';
 import type { UIStrings } from '../lib/languages';
 import type { ActiveIconAssets, IconAssetRecord, IconSlot } from '../lib/iconAssets';
 import type { UiPreferencesV1 } from '../lib/uiPreferences';

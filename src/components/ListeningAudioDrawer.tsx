@@ -5,7 +5,7 @@ import {
   useState,
   type RefObject,
 } from 'react';
-import { RefreshCw, RotateCcw, Volume2, X } from 'lucide-react';
+import { RefreshCw, RotateCcw, Volume2, X } from '../icons/koboyo';
 import {
   LISTENING_RATE_OPTIONS,
   type ListeningRate,
