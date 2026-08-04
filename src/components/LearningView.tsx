@@ -4,7 +4,7 @@ import type { UIStrings, SupportedLang } from '../lib/languages';
 import { LANG_CONFIGS, detectSecondaryLang } from '../lib/languages';
 import { updateSRS } from '../lib/srs';
 import { DB, getTodayStr } from '../lib/db';
-import { Volume2, Hash, Layers, Quote, Link2 } from 'lucide-react';
+import { Hash, Layers, Link2, Quote, Volume2 } from '../icons/koboyo';
 import type { Deck } from '../lib/types';
 import { BrowserSpeechEngine } from '../lib/speechEngine';
 

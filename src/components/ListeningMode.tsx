@@ -1,17 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  ListMusic,
-  Minus,
-  Pause,
-  Play,
-  Plus,
-  RotateCcw,
-  SkipForward,
-  Volume2,
-} from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, ListMusic, Minus, Pause, Play, Plus, RotateCcw, SkipForward, Volume2 } from '../icons/koboyo';
 import { DB, getTodayStr } from '../lib/db';
 import type { Deck, DeckType } from '../lib/types';
 import type { UILang } from '../lib/languages';

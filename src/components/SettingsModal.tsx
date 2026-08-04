@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Check, Database, Download, FileUp, Palette, RotateCcw, X } from 'lucide-react';
+import { Check, Database, Download, FileUp, Palette, RotateCcw, X } from '../icons/koboyo';
 import { useFocusTrap } from '../lib/useFocusTrap';
 import { t, type UILang, type UIStrings } from '../lib/languages';
 import { PERSONALIZATION_STRINGS } from '../lib/personalizationStrings';

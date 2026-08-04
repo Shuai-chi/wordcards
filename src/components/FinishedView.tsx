@@ -1,4 +1,4 @@
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles } from '../icons/koboyo';
 import type { UIStrings } from '../lib/languages';
 import { t } from '../lib/languages';
 

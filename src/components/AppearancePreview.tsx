@@ -1,4 +1,4 @@
-import { BookOpen, Target } from 'lucide-react';
+import { BookOpen, Target } from '../icons/koboyo';
 import type { UIStrings } from '../lib/languages';
 import type { PersonalizationStrings } from '../lib/personalizationStrings';
 

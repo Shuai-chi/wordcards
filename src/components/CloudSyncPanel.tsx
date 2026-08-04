@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Cloud,
-  CloudOff,
-  Download,
-  RefreshCw,
-  Trash2,
-  Unplug,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Cloud, CloudOff, Download, RefreshCw, Trash2, Unplug } from '../icons/koboyo';
 import type { CloudSyncState } from '../lib/cloudSyncController';
 import type { CloudSyncStrings } from '../lib/cloudSyncStrings';
 import type { UILang } from '../lib/languages';

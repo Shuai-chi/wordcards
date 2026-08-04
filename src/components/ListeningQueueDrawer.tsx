@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { X } from '../icons/koboyo';
 import type { ListeningPlaylistItem } from '../lib/listeningPlaylist';
 
 interface ListeningQueueDrawerProps {

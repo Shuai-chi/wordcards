@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Clipboard, RotateCcw } from 'lucide-react';
+import { Check, Clipboard, RotateCcw } from '../icons/koboyo';
 import type { EffectiveTheme, ThemeCoreTokens } from '../lib/theme';
 import type { PersonalizationStrings } from '../lib/personalizationStrings';
 import {

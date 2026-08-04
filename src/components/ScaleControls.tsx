@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Minus, Plus, RotateCcw } from 'lucide-react';
+import { Minus, Plus, RotateCcw } from '../icons/koboyo';
 import {
   UI_SCALE_CONSTRAINTS,
   resetAllUiScales,

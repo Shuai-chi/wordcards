@@ -1,4 +1,4 @@
-import { ImagePlus, Maximize2, RotateCcw, Trash2 } from 'lucide-react';
+import { ImagePlus, Maximize2, RotateCcw, Trash2 } from '../icons/koboyo';
 import { useEffect, useRef, useState } from 'react';
 import {
   createDefaultIconTransform,

@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { Settings, Upload, BookOpen, Sun, Moon, Globe } from 'lucide-react';
+import { BookOpen, Globe, Moon, Settings, Sun, Upload } from './icons/koboyo';
 import Dashboard from './components/Dashboard';
 import Home from './components/Home';
 import LearningView from './components/LearningView';
